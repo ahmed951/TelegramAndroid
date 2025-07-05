@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="AppName">Telegram</string>
-    <string name="AppNameBeta">Telegram Beta</string>
+    <string name="AppName">AT Client</string>
+    <string name="AppNameBeta">AT Client Beta</string>
     <string name="LanguageName">Русский</string>
     <string name="English">Английский</string>
     <string name="LanguageNameInEnglish">Russian</string>
@@ -278,7 +278,7 @@
     <string name="formatterDay12HSec">h:mm:ss a</string>
     <string name="CopyWithoutProtocol">Копировать без протокола</string>
     <!--fork settings view-->
-    <string name="ForkSettingsTitle">Настройки Fork Client</string>
+    <string name="ForkSettingsTitle">Настройки AT Client</string>
     <string name="ForkCheckUpdate">Проверить обновления</string>
     <string name="SquareAvatars">Квадратные аватары</string>
     <string name="SquareAvatarsInfo">Требуется перезапуск</string>

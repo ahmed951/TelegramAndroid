@@ -377,7 +377,7 @@ public class ForkSettingsActivity extends BaseFragment {
             } else if (position == disableThumbsInDialogList) {
                 toggleGlobalMainSetting("disableThumbsInDialogList", view, false);
             } else if (position == disableGlobalSearch) {
-                toggleGlobalMainSetting("disableGlobalSearch", view, false);
+                toggleGlobalMainSetting("disableGlobalSearch", view, true);
             } else if (position == hideBottomButton) {
                 toggleGlobalMainSetting("hideBottomButton", view, false);
             } else if (position == syncPinsRow) {
@@ -385,7 +385,7 @@ public class ForkSettingsActivity extends BaseFragment {
             } else if (position == hideSensitiveDataRow) {
                 toggleGlobalMainSetting("hideSensitiveData", view, false);
             } else if (position == customTitleRow) {
-                final String defaultValue = "Fork Client";
+                final String defaultValue = "AT Client";
                 org.telegram.messenger.forkgram.ForkDialogs.CreateFieldAlert(
                     context,
                     LocaleController.getString("EditAdminRank", R.string.EditAdminRank),
@@ -445,7 +445,7 @@ public class ForkSettingsActivity extends BaseFragment {
                     TextSettingsCell textCell = (TextSettingsCell) holder.itemView;
                     if (position == customTitleRow) {
                         String t = LocaleController.getString("EditAdminRank", R.string.EditAdminRank);
-                        final String v = MessagesController.getGlobalMainSettings().getString("forkCustomTitle", "Fork Client");
+                        final String v = MessagesController.getGlobalMainSettings().getString("forkCustomTitle", "AT Client");
                         textCell.setTextAndValue(t, v, false);
                     } else if (position == lastFmLoginRow) {
                         textCell.setTextAndIcon("Last.fm Login", R.drawable.ic_lastfm, false);

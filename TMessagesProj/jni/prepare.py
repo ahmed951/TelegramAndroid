@@ -478,8 +478,8 @@ stage('tde2e', """
     comment_line "jar"
     comment_line "mv tdlib"
 
-    sed -i "s/ php//g" "$source_dir/example/android/check-environment.sh"
-    sed -i "s/PHP_EXECUTABLE/FALSE/g" "$source_dir/td/generate/CMakeLists.txt"
+    gsed -i "s/ php//g" "$source_dir/example/android/check-environment.sh"
+    gsed -i "s/PHP_EXECUTABLE/FALSE/g" "$source_dir/td/generate/CMakeLists.txt"
 
     cd "$source_dir/example/android"
     if [ -n "$SED_CMDS" ]; then

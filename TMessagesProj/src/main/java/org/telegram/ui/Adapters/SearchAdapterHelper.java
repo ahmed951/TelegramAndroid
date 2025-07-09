@@ -583,7 +583,7 @@ public class SearchAdapterHelper {
         if (MessagesController.getGlobalMainSettings().getBoolean("disableGlobalSearch", false)) {
             return new ArrayList<TLObject>();
         }
-        return new ArrayList<TLObject>();
+        return globalSearch;
     }
 
     public ArrayList<Object> getPhoneSearch() {

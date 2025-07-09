@@ -382,7 +382,7 @@ public class ForkSettingsActivity extends BaseFragment {
             } else if (position == hideSensitiveDataRow) {
                 toggleGlobalMainSetting("hideSensitiveData", view, false);
             } else if (position == customTitleRow) {
-                final String defaultValue = "AT Client";
+                final String defaultValue = "Fork Client";
                 org.telegram.messenger.forkgram.ForkDialogs.CreateFieldAlert(
                     context,
                     LocaleController.getString("EditAdminRank", R.string.EditAdminRank),
@@ -440,7 +440,7 @@ public class ForkSettingsActivity extends BaseFragment {
                     TextSettingsCell textCell = (TextSettingsCell) holder.itemView;
                     if (position == customTitleRow) {
                         String t = LocaleController.getString("EditAdminRank", R.string.EditAdminRank);
-                        final String v = MessagesController.getGlobalMainSettings().getString("forkCustomTitle", "AT Client");
+                        final String v = MessagesController.getGlobalMainSettings().getString("forkCustomTitle", "Fork Client");
                         textCell.setTextAndValue(t, v, false);
                     }
                     break;

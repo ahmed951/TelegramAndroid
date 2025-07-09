@@ -1351,7 +1351,7 @@ public class SearchViewPager extends ViewPagerFixed implements FilteredSearchVie
             if (expandedPublicPosts) {
                 items.add(new Item(PUBLIC_POSTS_TYPE));
             }
-            items.add(new Item(CHANNELS_TYPE));
+            //items.add(new Item(CHANNELS_TYPE));
             items.add(new Item(BOTS_TYPE));
             if (!showOnlyDialogsAdapter) {
                 Item item = new Item(FILTER_TYPE);

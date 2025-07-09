@@ -248,7 +248,7 @@ public class DialogsChannelsAdapter extends UniversalAdapter {
         }, next ? 800 : 0);
 
         if (!next) {
-            loadingChannels = true;
+            loadingChannels = false;
             TLRPC.TL_contacts_search req2 = new TLRPC.TL_contacts_search();
             req2.limit = 20;
             req2.q = this.query;

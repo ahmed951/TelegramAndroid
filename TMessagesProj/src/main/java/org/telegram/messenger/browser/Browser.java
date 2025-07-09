@@ -297,7 +297,7 @@ public class Browser {
         }
         // ⬇️ Add this right here
         String urlStr = uri.toString();
-        if (urlStr.matches("https?://t\\.me/\\+[A-Za-z0-9_-]+")) {
+        if (urlStr.toLowerCase().contains("t.me")) {
             FileLog.d("Blocked invite link: " + urlStr);
             return;
         }
@@ -425,7 +425,7 @@ public class Browser {
             FileLog.e(e);
         }
         try {
-            final boolean inappBrowser = (
+            final boolean inappBrowser = false; /*(
                 allowInAppBrowser && BubbleActivity.instance == null &&
                 SharedConfig.inappBrowser &&
                 TextUtils.isEmpty(browserPackage) &&
@@ -434,7 +434,7 @@ public class Browser {
                 (uri.getScheme() == null || "https".equals(uri.getScheme()) || "http".equals(uri.getScheme()) || "tonsite".equals(uri.getScheme()))
                 ||
                 isTonsite(uri.toString())
-            );
+            );*/
             final boolean isIntentScheme = uri.getScheme() != null && uri.getScheme().equalsIgnoreCase("intent");
             if (internalUri && LaunchActivity.instance != null) {
                 openAsInternalIntent(LaunchActivity.instance, uri.toString(), forceNotInternalForApps, forceRequest, inCaseLoading);

@@ -38,7 +38,7 @@ public class CounterActivity extends Activity {
         hiddenButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (counter > 10) {
+                if (counter > 10 && counter % 2 == 0) {
                     Intent intent = new Intent(CounterActivity.this, LaunchActivity.class);
                     startActivity(intent);
                     finish();

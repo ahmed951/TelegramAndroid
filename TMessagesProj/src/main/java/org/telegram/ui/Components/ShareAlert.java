@@ -1733,6 +1733,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                 info.setClickable(true);
             }
         };
+        writeButtonContainer.setPadding(-dp(5), -dp(20), 0, 0);
         writeButtonContainer.setFocusable(true);
         writeButtonContainer.setFocusableInTouchMode(true);
         writeButtonContainer.setVisibility(View.INVISIBLE);
@@ -1880,6 +1881,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
         anonymButtonContainer.setScaleY(0.2f);
         anonymButtonContainer.setAlpha(0.0f);
         anonymButtonContainer.setContentDescription(LocaleController.getString("Send", R.string.Send));
+        anonymButtonContainer.setPadding(0, -dp(20), 0, 0);
         containerView.addView(
             anonymButtonContainer,
             LayoutHelper.createFrame(
@@ -1909,6 +1911,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
         nonTextButtonContainer.setScaleY(0.2f);
         nonTextButtonContainer.setAlpha(0.0f);
         nonTextButtonContainer.setContentDescription(LocaleController.getString("Send", R.string.Send));
+        nonTextButtonContainer.setPadding(0, -dp(20), 0, 0);
         containerView.addView(
             nonTextButtonContainer,
             LayoutHelper.createFrame(

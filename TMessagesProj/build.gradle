@@ -67,9 +67,7 @@ def getStringForConfig(String s) {
     return "\"" + s + "\""
 }
 
-def getStringForConfig(String s) {
-    return "\"" + s + "\""
-}
+
 
 def isWindows = String.valueOf(DefaultNativePlatform.currentOperatingSystem.toFamilyName() == OperatingSystemFamily.WINDOWS)
 android {

@@ -36061,7 +36061,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         shakeContent();
                     }
                 } else if (str.startsWith("@")) {
-                    getMessagesController().openByUserName(username, ChatActivity.this, 0, makeProgressForLink(cell, url));
+                   // getMessagesController().openByUserName(username, ChatActivity.this, 0, makeProgressForLink(cell, url));
+                    Toast.makeText(getParentActivity(), "Username links are disabled", Toast.LENGTH_SHORT).show();
+                    return;
                 } else {
                     processExternalUrl(0, str, url, cell, false, false);
                 }

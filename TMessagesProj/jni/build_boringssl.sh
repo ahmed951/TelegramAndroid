@@ -3,10 +3,12 @@
 set -e
 
 
-if [[ -z "$(ANDROID_SDK)" ]]; then
+export ANDROID_SDK=/Users/ahmed/Library/Android/sdk
+
+if [[ -z "$ANDROID_SDK" ]]; then
    cmakePath=""
 else
-   cmakePath=`find $ANDROID_SDK/cmake -executable -type f | grep cmake$ | head -n 1`/
+   cmakePath="/Users/ahmed/Library/Android/sdk/cmake/4.1.2/bin/"
 fi
 
 function build_one {

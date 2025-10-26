@@ -35952,11 +35952,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (str.startsWith("@")) {
                 Toast.makeText(getParentActivity(), "Username links are disabled", Toast.LENGTH_SHORT).show();
                 return;
-                if (cell != null) {
+                /* if (cell != null) {
                     cell.resetPressedLink(-1);
                 }
                 didLongPressUsername(cell, url, str.substring(1));
-                return;
+                return; */
             }
             if (url == null) {
                 BottomSheet.Builder builder = new BottomSheet.Builder(getParentActivity(), false, themeDelegate);

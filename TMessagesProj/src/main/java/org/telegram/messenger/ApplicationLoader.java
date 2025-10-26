@@ -368,29 +368,6 @@ public class ApplicationLoader extends Application {
             pendingIntentFlags = PendingIntent.FLAG_MUTABLE;
         }
         if (enabled) {
-<<<<<<< HEAD
-            Log.d("TFOSS", "Trying to start push service every minute");
-            // Telegram-FOSS: unconditionally enable push service
-            AlarmManager am = (AlarmManager) applicationContext.getSystemService(Context.ALARM_SERVICE);
-            Intent i = new Intent(applicationContext, NotificationsService.class);
-            try {
-            pendingIntent = PendingIntent.getBroadcast(applicationContext, 0, i, pendingIntentFlags);
-
-            am.cancel(pendingIntent);
-            am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 60000, pendingIntent);
-            } catch (Throwable ignore) {
-                Log.d("Fork Client", "Failed to set intent");
-            }
-            try {
-                Log.d("TFOSS", "Starting push service...");
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    applicationContext.startForegroundService(new Intent(applicationContext, NotificationsService.class));
-                } else {
-                    applicationContext.startService(new Intent(applicationContext, NotificationsService.class));
-                }
-            } catch (Throwable ignore) {
-                Log.d("TFOSS", "Failed to start push service");
-=======
             // Check if UnifiedPush is active and working
             boolean unifiedPushActive = getPushProvider() instanceof PushListenerController.UnifiedPushListenerServiceProvider &&
                     getPushProvider().hasServices() &&
@@ -421,7 +398,6 @@ public class ApplicationLoader extends Application {
                 }
             } else {
                 Log.d("Fork Client", "UnifiedPush is active, skipping foreground service");
->>>>>>> dev
             }
         } else {
             applicationContext.stopService(new Intent(applicationContext, NotificationsService.class));

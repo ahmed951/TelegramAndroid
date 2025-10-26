@@ -24,11 +24,8 @@ configurations.all {
 }
 
 dependencies {
-<<<<<<< HEAD
-=======
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 
->>>>>>> dev
     implementation 'androidx.interpolator:interpolator:1.0.0'
     implementation 'androidx.fragment:fragment:1.2.0'
     implementation 'androidx.core:core:1.10.1'
@@ -63,12 +60,8 @@ dependencies {
         }
     }
     implementation 'com.github.UnifiedPush:android-connector:2.3.1'
-<<<<<<< HEAD
-    implementation 'org.osmdroid:osmdroid-android:6.1.14'
-=======
     implementation 'org.osmdroid:osmdroid-android:6.1.20'
 }
->>>>>>> dev
 
 def getStringForConfig(String s) {
     return "\"" + s + "\""
@@ -121,11 +114,8 @@ android {
         buildConfigField 'int', 'USER_ID_OWNER', USER_ID_OWNER
         buildConfigField 'String', 'USER_REPO', getStringForConfig(USER_REPO)
         buildConfigField 'int', 'CHECK_UPDATES', CHECK_UPDATES
-<<<<<<< HEAD
-=======
         buildConfigField 'String', 'LASTFM_API_KEY', getStringForConfig(LASTFM_API_KEY)
         buildConfigField 'String', 'LASTFM_API_SECRET', getStringForConfig(LASTFM_API_SECRET)
->>>>>>> dev
 
         vectorDrawables.generatedDensities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi']
 
@@ -141,11 +131,7 @@ android {
         externalNativeBuild {
             cmake {
                 version '3.10.2'
-<<<<<<< HEAD
-                arguments '-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-16'
-=======
                 arguments '-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-21' //, '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON'
->>>>>>> dev
                 if (project.hasProperty("armeabi-v7a")) {
                     abiFilters 'armeabi-v7a'
                 } else if (project.hasProperty("arm64-v8a")) {

@@ -9912,10 +9912,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 //                    BillingController.getInstance().queryProductDetails(productQueries, (result, list) -> AndroidUtilities.runOnUIThread(() -> {
 //                        FileLog.d("LoginBilling queried \"" + product + "\" product: " + BillingController.getResponseCodeString(result.getResponseCode()));
 //                        if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
-<<<<<<< HEAD
-=======
 //                            lastError[0] = "BILLING_" + BillingController.getResponseCodeString(result.getResponseCode());
->>>>>>> dev
 //                            BulletinFactory.of(slideViewsContainer, null).createSimpleBulletin(R.raw.error, formatString(R.string.UnknownErrorCode, BillingController.getResponseCodeString(result.getResponseCode())));
 //                            return;
 //                        }
@@ -9954,10 +9951,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 //                                        FileLog.d("LoginBilling, querying done purchases...");
 //
 //                                        Runnable buy = () -> {
-<<<<<<< HEAD
-=======
 //                                            paid = true;
->>>>>>> dev
 //                                            BillingController.getInstance().addResultListener(productDetails.getProductId(), billingResult2 -> {
 //                                                final boolean success = billingResult2.getResponseCode() == BillingClient.BillingResponseCode.OK;
 //                                                final String error = success ? null : BillingController.getResponseCodeString(billingResult2.getResponseCode());
@@ -9981,11 +9975,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 //                                                if (paidList != null && !paidList.isEmpty()) {
 //                                                    for (Purchase purchase : paidList) {
 //                                                        if (purchase.getProducts().contains(product)) {
-<<<<<<< HEAD
-//                                                            TLRPC.TL_payments_assignPlayMarketTransaction req2 = new TLRPC.TL_payments_assignPlayMarketTransaction();
-=======
 //                                                            final TLRPC.TL_payments_assignPlayMarketTransaction req2 = new TLRPC.TL_payments_assignPlayMarketTransaction();
->>>>>>> dev
 //                                                            req2.receipt = new TLRPC.TL_dataJSON();
 //                                                            req2.receipt.data = purchase.getOriginalJson();
 //                                                            purpose.restore = true;
@@ -9994,10 +9984,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 //                                                                if (response instanceof TLRPC.Updates) {
 //                                                                    for (TLRPC.TL_updateSentPhoneCode u : findUpdatesAndRemove((TLRPC.Updates) response, TLRPC.TL_updateSentPhoneCode.class)) {
 //                                                                        AndroidUtilities.runOnUIThread(() -> {
-<<<<<<< HEAD
-=======
 //                                                                            paid = true;
->>>>>>> dev
 //                                                                            LoginActivity fragment = LaunchActivity.findFragment(LoginActivity.class);
 //                                                                            if (fragment == null) {
 //                                                                                fragment = new LoginActivity(currentAccount);
@@ -10031,23 +10018,15 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 //                                        }));
 //                                    });
 //                                } else if (res instanceof TLRPC.TL_boolFalse) {
-<<<<<<< HEAD
-//                                    BulletinFactory.of(slideViewsContainer, null).createSimpleBulletin(R.raw.error, formatString(R.string.UnknownErrorCode, "RESPONSE_FALSE"));
-//                                } else if (err != null) {
-=======
 //                                    lastError[0] = "RESPONSE_FALSE";
 //                                    BulletinFactory.of(slideViewsContainer, null).createSimpleBulletin(R.raw.error, formatString(R.string.UnknownErrorCode, "RESPONSE_FALSE"));
 //                                } else if (err != null) {
 //                                    lastError[0] = err.text;
->>>>>>> dev
 //                                    BulletinFactory.of(slideViewsContainer, null).showForError(err);
 //                                }
 //                            }), ConnectionsManager.RequestFlagFailOnServerErrors | ConnectionsManager.RequestFlagWithoutLogin);
 //                        } else {
-<<<<<<< HEAD
-=======
 //                            lastError[0] = "PRODUCT_NOT_FOUND";
->>>>>>> dev
 //                            BulletinFactory.of(slideViewsContainer, null).createSimpleBulletin(R.raw.error, formatString(R.string.UnknownErrorCode, "PRODUCT_NOT_FOUND"));
 //                        }
 //                    }));

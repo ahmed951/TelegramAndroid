@@ -178,11 +178,7 @@ public class ActionBarMenuSubItem extends FrameLayout {
             rightIcon.setVisibility(View.VISIBLE);
             rightIcon.setImageResource(icon);
         }
-<<<<<<< HEAD
-        int iconWidth = AndroidUtilities.dp(24 + 5);
-=======
         int iconWidth = dp(24 + 5);
->>>>>>> dev
         ((FrameLayout.LayoutParams) textView.getLayoutParams()).setMargins(LocaleController.isRTL ? iconWidth : 0, 0, LocaleController.isRTL ? 0:iconWidth, 0);
     }
 

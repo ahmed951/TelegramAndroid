@@ -99,10 +99,6 @@ public class BillingController {
             NumberFormat numberFormat = NumberFormat.getCurrencyInstance();
             numberFormat.setCurrency(cur);
             if (rounded) {
-<<<<<<< HEAD
-                return numberFormat.format(Math.round(amount / Math.pow(10, exp)));
-            }
-=======
                 numberFormat.setMaximumFractionDigits(0);
                 numberFormat.setMinimumFractionDigits(0);
                 return numberFormat.format(Math.round(amount / Math.pow(10, exp)));
@@ -110,7 +106,6 @@ public class BillingController {
             final int defaultFractionDigits = cur.getDefaultFractionDigits();
             numberFormat.setMinimumFractionDigits(defaultFractionDigits);
             numberFormat.setMaximumFractionDigits(defaultFractionDigits);
->>>>>>> dev
             return numberFormat.format(amount / Math.pow(10, exp));
         }
         return amount + " " + currency;

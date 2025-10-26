@@ -9560,8 +9560,6 @@
     <string name="MessageTodoList">Checklist</string>
     <string name="TodoCheck">Check</string>
     <string name="TodoUncheck">Uncheck</string>
-<<<<<<< HEAD
-=======
     <string name="Gift2ReleasedBy">released by **%s**</string>
     <string name="Gift2ActionReleasedBy">Released by **%s**</string>
     <string name="StoriesRemoveFromRecent">Remove from Recent</string>
@@ -9745,7 +9743,6 @@
     <string name="GiftThemesSetByOther">**%1$s** set **%2$s** as a new theme for this chat.</string>
     <string name="GiftThemesSetActionView">View</string>
     <string name="GiftLocked">Gift Locked</string>
->>>>>>> dev
     <!--FORK CLIENT-->
     <string name="BottomDialogs">Tap here to start a new chat.</string>
     <string name="FastForward">Fast Forward</string>
@@ -9792,10 +9789,7 @@
     <string name="ShowNotificationContentInfo">When app is locked. Can be cause of privacy leaks.</string>
     <string name="DeleteAllYourMessages">Delete all your messages</string>
     <string name="DeleteAllYourMessagesInfo">Are you sure you want **delete all your messages** from this chat?</string>
-<<<<<<< HEAD
-=======
     <string name="DeleteAllYourMessagesInAllTopics">Delete all your messages in all topics</string>
->>>>>>> dev
     <string name="ReallySure">Are you **really sure**?</string>
     <string name="DisableGlobalSearch">Disable Global Search</string>
     <string name="DisableQuickReaction">Disable quick reaction</string>
@@ -9807,10 +9801,6 @@
     <string name="AddDeleteAllUnpinnedMessages">Add "Delete all unpinned messages" to menu</string>
     <string name="AddDeleteAllUnpinnedMessagesInfo">EXPERIMENTAL.</string>
     <string name="NewMyStory">New Story</string>
-<<<<<<< HEAD
-    <string name="LargePhoto">2560px for sending photos</string>
-=======
->>>>>>> dev
     <string name="DisableSlideToNextChannel">Disable slide to next channel</string>
     <string name="DisableRecentFilesAttachment">Disable Recent Files</string>
     <string name="BotSkipShare">Skip share boxes from bots</string>
@@ -9821,8 +9811,5 @@
     <string name="BotCopyUrl">Copy every clicked link</string>
     <string name="DisableDefaultInAppBrowser">Open links in system browser</string>
     <string name="SmsOnlyOfficialWarning">Note: SMS verification is limited to ONLY official mobile apps</string>
-<<<<<<< HEAD
-=======
     <string name="ThirdParty">Third-party</string>
->>>>>>> dev
 </resources>

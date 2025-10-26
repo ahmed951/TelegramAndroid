@@ -10791,13 +10791,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     infoEndRowEmpty = rowCount++;
                 }
             }
-<<<<<<< HEAD
-            idRow = rowCount++;
-//            if (infoHeaderRow != -1) {
-//                notificationsDividerRow = rowCount++;
-//            }
-            notificationsRow = rowCount++;
-=======
             if (actionsView == null) {
                 if (infoHeaderRow != -1) {
                     notificationsDividerRow = rowCount++;
@@ -10805,7 +10798,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 notificationsRow = rowCount++;
             }
             idRow = rowCount++;
->>>>>>> dev
             infoSectionRow = rowCount++;
 
             if (ChatObject.isChannel(currentChat) && !currentChat.megagroup) {
@@ -11976,8 +11968,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 return;
             }
             if (UserObject.isUserSelf(user)) {
-<<<<<<< HEAD
-=======
                 if (myProfile) {
                     if (actionsView != null) {
                         editItemVisible = !actionsView.supportsEditInfo();
@@ -11985,7 +11975,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         editItemVisible = true;
                     }
                 }
->>>>>>> dev
 
                 otherItem.setOnLongClickListener(v -> {
                     AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
@@ -16371,8 +16360,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
-<<<<<<< HEAD
-=======
     private int lastStoriesSelectedCount;
     private boolean lastStoriesIsInAlbum;
     private void checkStoriesButtonText(int count, boolean animated) {
@@ -16601,5 +16588,4 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         spannableStringBuilder.setSpan(span, 0, spannableStringBuilder.length(), 0);
         return spannableStringBuilder;
     }
->>>>>>> dev
 }

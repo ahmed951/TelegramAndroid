@@ -232,8 +232,6 @@ public fun CreateDeleteAllUnpinnedMessagesAlert(
 }
 
 @JvmStatic
-<<<<<<< HEAD
-=======
 public fun CreateDeleteAllYourMessagesInAllTopicsAlert(
         currentAccount: Int,
         dialogId: Long,
@@ -329,7 +327,6 @@ public fun CreateDeleteAllYourMessagesInAllTopicsAlert(
 }
 
 @JvmStatic
->>>>>>> dev
 public fun CreateFieldAlert(
         context: Context,
         title: String,

@@ -758,16 +758,7 @@ public class StarsController {
         }
 
         if (BuildVars.useInvoiceBilling()) {
-<<<<<<< HEAD
-            TLRPC.TL_inputStorePaymentStarsTopup payload = new TLRPC.TL_inputStorePaymentStarsTopup();
-            payload.stars = option.stars;
-            payload.currency = option.currency;
-            payload.amount = option.amount;
-
-            TLRPC.TL_inputStorePaymentStarsTopup purpose = new TLRPC.TL_inputStorePaymentStarsTopup();
-=======
             final TLRPC.TL_inputStorePaymentStarsTopup purpose = new TLRPC.TL_inputStorePaymentStarsTopup();
->>>>>>> dev
             purpose.stars = option.stars;
             purpose.amount = option.amount;
             purpose.currency = option.currency;

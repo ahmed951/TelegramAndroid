@@ -67,11 +67,8 @@ jobs:
           echo "USER_REPO=$USER_REPO" >> $vars
           echo "CHECK_UPDATES=${{ matrix.updates }}" >> $vars
           echo "USER_ID_OWNER=${{ secrets.USER_ID_OWNER }}" >> $vars
-<<<<<<< HEAD
-=======
           echo "LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }}" >> $vars
           echo "LASTFM_API_SECRET=${{ secrets.LASTFM_API_SECRET }}" >> $vars
->>>>>>> dev
 
           ###
           echo $ADDITIONAL_BUILD_NUMBER
@@ -85,12 +82,7 @@ jobs:
           mkdir -p artifact
           mv TMessagesProj_App/build/outputs/apk/afat/${{ matrix.type }}/app.apk app.apk
           cp app.apk "artifact/ForkClient $(cat ver.txt)${{ matrix.name }}.apk"
-<<<<<<< HEAD
-          mkdir -p tag_asset
-          cp app.apk "tag_asset/ForkClient_$(cat ver.txt)${{ matrix.name }}.apk"
-=======
           sha256sum app.apk > "artifact/ForkClient $(cat ver.txt)${{ matrix.name }}.apk.sha256"
->>>>>>> dev
 
           # Upload to channel.
           set +x
@@ -112,9 +104,6 @@ jobs:
         name: Upload artifact
         with:
           name: ForkClient-${{ matrix.type }}
-<<<<<<< HEAD
-          path: artifact/
-=======
           path: |
             artifact/*.apk
 
@@ -144,7 +133,6 @@ jobs:
         with:
           name: ${{ env.SHA256_HASH }}
           path: apk_files/*.sha256
->>>>>>> dev
 
   release:
     name: Create Release.
@@ -167,8 +155,6 @@ jobs:
           find debug_asset -name "*.apk" | head -1 | sed 's/.*ForkClient //;s/\.apk//' > version.txt
           echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
           echo "OFFICIAL_VERSION=$(cat version.txt | sed 's/..$//')" >> $GITHUB_ENV
-<<<<<<< HEAD
-=======
       - name: Generate checksums for verification
         run: |
           echo "— Updated to ${{ env.OFFICIAL_VERSION }} build of the official Telegram." > release_body.txt
@@ -185,7 +171,6 @@ jobs:
               echo "- $filename: \`$checksum\`" >> release_body.txt
             fi
           done
->>>>>>> dev
       - name: Create Release
         uses: softprops/action-gh-release@v0.1.15
         env:
@@ -193,16 +178,8 @@ jobs:
         with:
           draft: true
           files: |
-<<<<<<< HEAD
-            debug_asset/*
-            release_asset/*
-          tag_name: ${{ env.VERSION }}
-          name: "ForkClient ${{ env.VERSION }}"
-          body: "— Updated to ${{ env.OFFICIAL_VERSION }} build of the official Telegram."
-=======
             debug_asset/*.apk
             release_asset/*.apk
           tag_name: ${{ env.VERSION }}
           name: "ForkClient ${{ env.VERSION }}"
           body_path: release_body.txt
->>>>>>> dev

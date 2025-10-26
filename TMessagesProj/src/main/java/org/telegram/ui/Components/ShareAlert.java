@@ -1809,13 +1809,6 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                             : "")
                         : null;
                     if (hasComment && !nonText) {
-<<<<<<< HEAD
-                        SendMessagesHelper.getInstance(account).sendMessage(SendMessagesHelper.SendMessageParams.of(
-                            commentTextView.getText().toString(),
-                            key,
-                            null,
-                            null,
-=======
                         boolean isMonoForum = MessagesController.getInstance(account).isMonoForum(key);
                         long monoForumPeerId = keyTopic != null && isMonoForum ? DialogObject.getPeerDialogId(keyTopic.from_id) : 0;
                         MessageObject replyTopMsg = keyTopic != null && !isMonoForum ? new MessageObject(account, keyTopic.topicStartMessage, false, false) : null;
@@ -1827,7 +1820,6 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                             key,
                             replyTopMsg,
                             replyTopMsg,
->>>>>>> dev
                             null,
                             true,
                             null,
@@ -1836,14 +1828,6 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                             notify,
                             0,
                             null,
-<<<<<<< HEAD
-                            false));
-                    }
-                    if (groupAnyItems) {
-                        AsCopy.GroupItemsIntoAlbum(
-                            key,
-                            AsCopy.TakeReplyToDraft(key, keyTopic, account, true),
-=======
                             false);
                         params.monoForumPeer = monoForumPeerId;
                         SendMessagesHelper.getInstance(account).sendMessage(params);
@@ -1858,26 +1842,18 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                         AsCopy.GroupItemsIntoAlbum(
                             key,
                             replyId,
->>>>>>> dev
                             maybeReplaceText,
                             sendingMessageObjects,
                             account,
                             parentFragment,
-<<<<<<< HEAD
-                            notify);
-=======
                             notify,
                             monoForumPeerId);
->>>>>>> dev
                         onSend(selectedDialogs, selectedDialogs.size(), keyTopic, info);
                         dismiss();
                         return;
                     }
-<<<<<<< HEAD
-=======
                     boolean isMonoForum = MessagesController.getInstance(account).isMonoForum(key);
                     long monoForumPeerId = keyTopic != null && isMonoForum ? DialogObject.getPeerDialogId(keyTopic.from_id) : 0;
->>>>>>> dev
                     AsCopy.PerformForwardFromMyName(
                         key,
                         keyTopic,
@@ -1885,12 +1861,8 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                         sendingMessageObjects,
                         account,
                         parentFragment,
-<<<<<<< HEAD
-                        notify);
-=======
                         notify,
                         monoForumPeerId);
->>>>>>> dev
                 }
                 onSend(selectedDialogs, selectedDialogs.size(), selectedDialogTopics.get(selectedDialogs.valueAt(0)), info);
             } else {
@@ -1909,10 +1881,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
         anonymButtonContainer.setScaleY(0.2f);
         anonymButtonContainer.setAlpha(0.0f);
         anonymButtonContainer.setContentDescription(LocaleController.getString("Send", R.string.Send));
-<<<<<<< HEAD
-=======
         anonymButtonContainer.setPadding(0, -dp(20), 0, 0);
->>>>>>> dev
         containerView.addView(
             anonymButtonContainer,
             LayoutHelper.createFrame(
@@ -1942,10 +1911,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
         nonTextButtonContainer.setScaleY(0.2f);
         nonTextButtonContainer.setAlpha(0.0f);
         nonTextButtonContainer.setContentDescription(LocaleController.getString("Send", R.string.Send));
-<<<<<<< HEAD
-=======
         nonTextButtonContainer.setPadding(0, -dp(20), 0, 0);
->>>>>>> dev
         containerView.addView(
             nonTextButtonContainer,
             LayoutHelper.createFrame(

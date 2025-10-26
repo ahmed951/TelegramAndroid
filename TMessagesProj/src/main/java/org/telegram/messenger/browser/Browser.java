@@ -297,11 +297,7 @@ public class Browser {
         }
         // ⬇️ Add this right here
         String urlStr = uri.toString();
-<<<<<<< HEAD
         if (urlStr.toLowerCase().contains("t.me")) {
-=======
-        if (urlStr.matches("https?://t\\.me/\\+[A-Za-z0-9_-]+")) {
->>>>>>> dev
             FileLog.d("Blocked invite link: " + urlStr);
             return;
         }

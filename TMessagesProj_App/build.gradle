@@ -23,11 +23,7 @@ configurations.all {
 dependencies {
     implementation project(':TMessagesProj')
     implementation 'androidx.multidex:multidex:2.0.1'
-<<<<<<< HEAD
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
-=======
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
->>>>>>> dev
 }
 
 android {
@@ -261,13 +257,8 @@ android {
     }
 
     defaultConfig {
-<<<<<<< HEAD
-        minSdkVersion 19
-        targetSdkVersion 34
-=======
         minSdkVersion 21
         targetSdkVersion 35
->>>>>>> dev
         versionName Utils['getVersionName']()
         ndkVersion "21.4.7075529"
 

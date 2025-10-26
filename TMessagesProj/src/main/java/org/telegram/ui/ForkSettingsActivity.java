@@ -18,10 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
-<<<<<<< HEAD
-=======
 import org.telegram.messenger.BuildVars;
->>>>>>> dev
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
@@ -135,13 +132,8 @@ public class ForkSettingsActivity extends BaseFragment {
     private ListAdapter listAdapter;
 
     private ArrayList<Integer> sectionRows = new ArrayList<Integer>();
-<<<<<<< HEAD
-    private String[] sectionStrings = {"General", "ChatList", "FilterChats", "ChatCamera", "StickerSize"};
-    private int[] sectionInts = {0, R.string.ChatList, R.string.FilterChats, 0, R.string.StickerSize};
-=======
     private String[] sectionStrings = {"General", "ChatList", "FilterChats", "ChatCamera", "StickerSize", "ThirdParty"};
     private int[] sectionInts = {0, R.string.ChatList, R.string.FilterChats, 0, R.string.StickerSize, R.string.ThirdParty};
->>>>>>> dev
 
     private int rowCount;
 
@@ -169,19 +161,12 @@ public class ForkSettingsActivity extends BaseFragment {
     private int disableParametersFromBotLinks;
     private int lockPremium;
     private int addItemToDeleteAllUnpinnedMessages;
-<<<<<<< HEAD
-    private int largePhoto;
-=======
->>>>>>> dev
     private int disableSlideToNextChannel;
     private int disableRecentFilesAttachment;
     private int botSkipShare;
     private int botSkipFullscreen;
     private int disableDefaultInAppBrowser;
-<<<<<<< HEAD
-=======
     private int lastFmLoginRow;
->>>>>>> dev
 
     private int stickerSizeRow;
 
@@ -249,10 +234,6 @@ public class ForkSettingsActivity extends BaseFragment {
         disableLockedAnimatedEmoji = rowCount++;
         disableParametersFromBotLinks = rowCount++;
         addItemToDeleteAllUnpinnedMessages = rowCount++;
-<<<<<<< HEAD
-        largePhoto = rowCount++;
-=======
->>>>>>> dev
         disableSlideToNextChannel = rowCount++;
         disableRecentFilesAttachment = rowCount++;
         disableDefaultInAppBrowser = rowCount++;
@@ -270,14 +251,11 @@ public class ForkSettingsActivity extends BaseFragment {
         sectionRows.add(rowCount++);
         stickerSizeRow = rowCount++;
 
-<<<<<<< HEAD
-=======
         emptyRows.add(rowCount++);
         sectionRows.add(rowCount++);
         lastFmLoginRow = (BuildVars.LASTFM_API_KEY != null && BuildVars.LASTFM_API_KEY.length() > 2 && 
                           BuildVars.LASTFM_API_SECRET != null && BuildVars.LASTFM_API_SECRET.length() > 2) ? rowCount++ : -1;
 
->>>>>>> dev
         return true;
     }
 
@@ -374,11 +352,6 @@ public class ForkSettingsActivity extends BaseFragment {
                 toggleGlobalMainSetting("disableParametersFromBotLinks", view, false);
             } else if (position == addItemToDeleteAllUnpinnedMessages) {
                 toggleGlobalMainSetting("addItemToDeleteAllUnpinnedMessages", view, false);
-<<<<<<< HEAD
-            } else if (position == largePhoto) {
-                toggleGlobalMainSetting("largePhoto", view, false);
-=======
->>>>>>> dev
             } else if (position == disableSlideToNextChannel) {
                 toggleGlobalMainSetting("disableSlideToNextChannel", view, false);
             } else if (position == disableRecentFilesAttachment) {
@@ -436,11 +409,8 @@ public class ForkSettingsActivity extends BaseFragment {
                         }
                         return null;
                     });
-<<<<<<< HEAD
-=======
             } else if (position == lastFmLoginRow) {
                 presentFragment(new LastFmLoginActivity());
->>>>>>> dev
             }
         });
 
@@ -477,11 +447,8 @@ public class ForkSettingsActivity extends BaseFragment {
                         String t = LocaleController.getString("EditAdminRank", R.string.EditAdminRank);
                         final String v = MessagesController.getGlobalMainSettings().getString("forkCustomTitle", "AT Client");
                         textCell.setTextAndValue(t, v, false);
-<<<<<<< HEAD
-=======
                     } else if (position == lastFmLoginRow) {
                         textCell.setTextAndIcon("Last.fm Login", R.drawable.ic_lastfm, false);
->>>>>>> dev
                     }
                     break;
                 }
@@ -535,13 +502,6 @@ public class ForkSettingsActivity extends BaseFragment {
                         String t = LocaleController.getString("AddDeleteAllUnpinnedMessages", R.string.AddDeleteAllUnpinnedMessages);
                         String info = LocaleController.getString("AddDeleteAllUnpinnedMessagesInfo", R.string.AddDeleteAllUnpinnedMessagesInfo);
                         textCell.setTextAndValueAndCheck(t, info, preferences.getBoolean("addItemToDeleteAllUnpinnedMessages", false), true, false);
-<<<<<<< HEAD
-                    } else if (position == largePhoto) {
-                        String t = LocaleController.getString("LargePhoto", R.string.LargePhoto);
-                        String info = LocaleController.getString("SquareAvatarsInfo", R.string.SquareAvatarsInfo);
-                        textCell.setTextAndValueAndCheck(t, info, preferences.getBoolean("largePhoto", false), true, false);
-=======
->>>>>>> dev
                     } else if (position == disableSlideToNextChannel) {
                         String t = LocaleController.getString("DisableSlideToNextChannel", R.string.DisableSlideToNextChannel);
                         textCell.setTextAndCheck(t, preferences.getBoolean("disableSlideToNextChannel", false), false);
@@ -623,10 +583,6 @@ public class ForkSettingsActivity extends BaseFragment {
                         || position == disableLockedAnimatedEmoji
                         || position == disableParametersFromBotLinks
                         || position == addItemToDeleteAllUnpinnedMessages
-<<<<<<< HEAD
-                        || position == largePhoto
-=======
->>>>>>> dev
                         || position == disableSlideToNextChannel
                         || position == disableRecentFilesAttachment
                         || position == disableDefaultInAppBrowser
@@ -644,12 +600,8 @@ public class ForkSettingsActivity extends BaseFragment {
                         || position == hideBottomButton
                         || position == syncPinsRow
                         || position == showNotificationContent
-<<<<<<< HEAD
-                        || position == photoHasStickerRow;
-=======
                         || position == photoHasStickerRow
                         || position == lastFmLoginRow;
->>>>>>> dev
             return fork;
         }
 
@@ -687,11 +639,7 @@ public class ForkSettingsActivity extends BaseFragment {
         public int getItemViewType(int position) {
             if (emptyRows.contains(position)) {
                 return 1;
-<<<<<<< HEAD
-            } else if (position == customTitleRow) {
-=======
             } else if (position == customTitleRow || position == lastFmLoginRow) {
->>>>>>> dev
                 return 2;
             } else if (position == squareAvatarsRow
                 || position == hideSensitiveDataRow
@@ -706,10 +654,6 @@ public class ForkSettingsActivity extends BaseFragment {
                 || position == disableLockedAnimatedEmoji
                 || position == disableParametersFromBotLinks
                 || position == addItemToDeleteAllUnpinnedMessages
-<<<<<<< HEAD
-                || position == largePhoto
-=======
->>>>>>> dev
                 || position == disableSlideToNextChannel
                 || position == disableRecentFilesAttachment
                 || position == disableDefaultInAppBrowser

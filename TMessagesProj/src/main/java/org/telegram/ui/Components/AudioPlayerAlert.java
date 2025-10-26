@@ -93,12 +93,8 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.audioinfo.AudioInfo;
-<<<<<<< HEAD
-//import org.telegram.messenger.chromecast.ChromecastController;
-=======
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
->>>>>>> dev
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;

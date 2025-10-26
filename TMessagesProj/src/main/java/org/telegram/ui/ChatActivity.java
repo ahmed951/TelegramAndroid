@@ -35941,6 +35941,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private void openClickableLink(CharacterStyle url, String str, boolean longPress, final ChatMessageCell cell, final MessageObject messageObject, boolean forceNoIV) {
         if (longPress) {
             if (str.startsWith("@")) {
+                Toast.makeText(getParentActivity(), "Username links are disabled", Toast.LENGTH_SHORT).show();
+                return;
                 if (cell != null) {
                     cell.resetPressedLink(-1);
                 }
@@ -36059,7 +36061,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         shakeContent();
                     }
                 } else if (str.startsWith("@")) {
-                    getMessagesController().openByUserName(username, ChatActivity.this, 0, makeProgressForLink(cell, url));
+                   // getMessagesController().openByUserName(username, ChatActivity.this, 0, makeProgressForLink(cell, url));
+                    Toast.makeText(getParentActivity(), "Username links are disabled", Toast.LENGTH_SHORT).show();
+                    return;
                 } else {
                     processExternalUrl(0, str, url, cell, false, false);
                 }

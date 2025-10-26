@@ -297,7 +297,11 @@ public class Browser {
         }
         // ⬇️ Add this right here
         String urlStr = uri.toString();
+<<<<<<< HEAD
         if (urlStr.toLowerCase().contains("t.me")) {
+=======
+        if (urlStr.matches("https?://t\\.me/\\+[A-Za-z0-9_-]+")) {
+>>>>>>> dev
             FileLog.d("Blocked invite link: " + urlStr);
             return;
         }
@@ -335,6 +339,7 @@ public class Browser {
                         if (response instanceof TL_account.webPagePreview) {
                             final TL_account.webPagePreview preview = (TL_account.webPagePreview) response;
                             MessagesController.getInstance(currentAccount).putUsers(preview.users, false);
+                            MessagesController.getInstance(currentAccount).putChats(preview.chats, false);
                             if (preview.media instanceof TLRPC.TL_messageMediaWebPage) {
                                 TLRPC.TL_messageMediaWebPage webPage = (TLRPC.TL_messageMediaWebPage) preview.media;
                                 if (webPage.webpage instanceof TLRPC.TL_webPage && webPage.webpage.cached_page != null) {

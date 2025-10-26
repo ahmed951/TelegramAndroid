@@ -123,6 +123,10 @@ public class ApplicationLoader extends Application {
         return applicationLoaderInstance.isBeta();
     }
 
+    public static boolean isAndroidTestEnvironment() {
+        return applicationLoaderInstance.isAndroidTestEnv();
+    }
+
     protected boolean isHuaweiBuild() {
         return false;
     }
@@ -132,6 +136,10 @@ public class ApplicationLoader extends Application {
     }
 
     protected boolean isBeta() {
+        return false;
+    }
+
+    protected boolean isAndroidTestEnv() {
         return false;
     }
 
@@ -151,6 +159,19 @@ public class ApplicationLoader extends Application {
             FileLog.e(e);
         }
         return new File("/data/data/org.telegram.messenger/files");
+    }
+
+    public static File getFilesDirFixed(String child) {
+        try {
+            File path = getFilesDirFixed();
+            File dir = new File(path, child);
+            dir.mkdirs();
+
+            return dir;
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return null;
     }
 
     public static void postInitApplication() {
@@ -347,6 +368,7 @@ public class ApplicationLoader extends Application {
             pendingIntentFlags = PendingIntent.FLAG_MUTABLE;
         }
         if (enabled) {
+<<<<<<< HEAD
             Log.d("TFOSS", "Trying to start push service every minute");
             // Telegram-FOSS: unconditionally enable push service
             AlarmManager am = (AlarmManager) applicationContext.getSystemService(Context.ALARM_SERVICE);
@@ -368,6 +390,38 @@ public class ApplicationLoader extends Application {
                 }
             } catch (Throwable ignore) {
                 Log.d("TFOSS", "Failed to start push service");
+=======
+            // Check if UnifiedPush is active and working
+            boolean unifiedPushActive = getPushProvider() instanceof PushListenerController.UnifiedPushListenerServiceProvider &&
+                    getPushProvider().hasServices() &&
+                    !TextUtils.isEmpty(SharedConfig.pushString) &&
+                    SharedConfig.pushType == PushListenerController.PUSH_TYPE_SIMPLE;
+            
+            if (!unifiedPushActive) {
+                Log.d("TFOSS", "Trying to start push service every minute");
+                AlarmManager am = (AlarmManager) applicationContext.getSystemService(Context.ALARM_SERVICE);
+                Intent i = new Intent(applicationContext, NotificationsService.class);
+                try {
+                pendingIntent = PendingIntent.getBroadcast(applicationContext, 0, i, pendingIntentFlags);
+
+                am.cancel(pendingIntent);
+                am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 60000, pendingIntent);
+                } catch (Throwable ignore) {
+                    Log.d("Fork Client", "Failed to set intent");
+                }
+                try {
+                    Log.d("TFOSS", "Starting push service...");
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        applicationContext.startForegroundService(new Intent(applicationContext, NotificationsService.class));
+                    } else {
+                        applicationContext.startService(new Intent(applicationContext, NotificationsService.class));
+                    }
+                } catch (Throwable ignore) {
+                    Log.d("TFOSS", "Failed to start push service");
+                }
+            } else {
+                Log.d("Fork Client", "UnifiedPush is active, skipping foreground service");
+>>>>>>> dev
             }
         } else {
             applicationContext.stopService(new Intent(applicationContext, NotificationsService.class));

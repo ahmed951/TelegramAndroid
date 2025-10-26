@@ -13,6 +13,9 @@
     <color name="monetRedDark">#F2B8B5</color>
     <color name="monetRedCall">#4CAF50</color>
     <color name="monetGreenCall">#EF5350</color>
+<<<<<<< HEAD
     <color name="dark_purple">#311B92</color>
     <color name="dark_background">#252425</color>
+=======
+>>>>>>> dev
 </resources>

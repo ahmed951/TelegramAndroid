@@ -6985,7 +6985,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             return;
         }
 
-        if (editingMessageObject.needResendWhenEdit()) {
+        if (editingMessageObject.needResendWhenEdit() && !ChatObject.canManageMonoForum(currentAccount, editingMessageObject.getDialogId())) {
             final MessageSuggestionParams params = parentFragment != null && parentFragment.messageSuggestionParams != null ?
                 parentFragment.messageSuggestionParams : MessageSuggestionParams.of(editingMessageObject.messageOwner.suggested_post);
 
@@ -7232,6 +7232,10 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
 
                 boolean updateStickersOrder = false;
                 updateStickersOrder = SendMessagesHelper.checkUpdateStickersOrder(text);
+
+                if (skipDotAtEnd) {
+                    notify = false;
+                }
 
                 final String textMessageString = isOwner
                     ? processDottedString(message[0].toString(), entities)
@@ -9761,7 +9765,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             !MessagesController.getInstance(currentAccount).premiumPurchaseBlocked() &&
             getParentFragment() != null && user != null &&
             !BuildVars.IS_BILLING_UNAVAILABLE &&
-            !UserObject.isUserSelf(user) &&
+            (!UserObject.isUserSelf(user) || myUserInfo != null && myUserInfo.display_gifts_button) &&
             !UserObject.isBot(user) &&
             !MessagesController.isSupportUser(user) &&
             userInfo != null &&
@@ -12592,14 +12596,23 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
 
         public TimerView(Context context) {
             super(context);
-
+            
             setOnClickListener((v) -> {
                 final String current = oldString.substring(0, oldString.indexOf(','));
                 timestamps.add(current);
+                
                 android.widget.Toast.makeText(
                         parentActivity,
                         "Saved timestamp at " + current + ".",
                         android.widget.Toast.LENGTH_SHORT).show();
+                
+                android.content.ClipboardManager clipboard
+                    = (android.content.ClipboardManager) context.getSystemService(
+                        android.content.Context.CLIPBOARD_SERVICE);
+                String timestampsText = String.join("\n", timestamps);
+                android.content.ClipData clip
+                    = android.content.ClipData.newPlainText("Timestamps", timestampsText);
+                clipboard.setPrimaryClip(clip);
             });
         }
 

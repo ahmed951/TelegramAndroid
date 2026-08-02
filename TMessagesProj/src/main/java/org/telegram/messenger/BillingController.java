@@ -99,8 +99,13 @@ public class BillingController {
             NumberFormat numberFormat = NumberFormat.getCurrencyInstance();
             numberFormat.setCurrency(cur);
             if (rounded) {
+                numberFormat.setMaximumFractionDigits(0);
+                numberFormat.setMinimumFractionDigits(0);
                 return numberFormat.format(Math.round(amount / Math.pow(10, exp)));
             }
+            final int defaultFractionDigits = cur.getDefaultFractionDigits();
+            numberFormat.setMinimumFractionDigits(defaultFractionDigits);
+            numberFormat.setMaximumFractionDigits(defaultFractionDigits);
             return numberFormat.format(amount / Math.pow(10, exp));
         }
         return amount + " " + currency;

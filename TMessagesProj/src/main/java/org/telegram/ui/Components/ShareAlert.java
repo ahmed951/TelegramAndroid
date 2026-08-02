@@ -1733,6 +1733,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                 info.setClickable(true);
             }
         };
+        writeButtonContainer.setPadding(-dp(5), -dp(20), 0, 0);
         writeButtonContainer.setFocusable(true);
         writeButtonContainer.setFocusableInTouchMode(true);
         writeButtonContainer.setVisibility(View.INVISIBLE);
@@ -1808,11 +1809,17 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                             : "")
                         : null;
                     if (hasComment && !nonText) {
-                        SendMessagesHelper.getInstance(account).sendMessage(SendMessagesHelper.SendMessageParams.of(
+                        boolean isMonoForum = MessagesController.getInstance(account).isMonoForum(key);
+                        long monoForumPeerId = keyTopic != null && isMonoForum ? DialogObject.getPeerDialogId(keyTopic.from_id) : 0;
+                        MessageObject replyTopMsg = keyTopic != null && !isMonoForum ? new MessageObject(account, keyTopic.topicStartMessage, false, false) : null;
+                        if (replyTopMsg != null) {
+                            replyTopMsg.isTopicMainMessage = true;
+                        }
+                        SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(
                             commentTextView.getText().toString(),
                             key,
-                            null,
-                            null,
+                            replyTopMsg,
+                            replyTopMsg,
                             null,
                             true,
                             null,
@@ -1821,21 +1828,32 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                             notify,
                             0,
                             null,
-                            false));
+                            false);
+                        params.monoForumPeer = monoForumPeerId;
+                        SendMessagesHelper.getInstance(account).sendMessage(params);
                     }
                     if (groupAnyItems) {
+                        boolean isMonoForum = MessagesController.getInstance(account).isMonoForum(key);
+                        long monoForumPeerId = keyTopic != null && isMonoForum ? DialogObject.getPeerDialogId(keyTopic.from_id) : 0;
+                        int replyId = AsCopy.TakeReplyToDraft(key, keyTopic, account, true);
+                        if (replyId == 0 && keyTopic != null && !isMonoForum) {
+                            replyId = keyTopic.id;
+                        }
                         AsCopy.GroupItemsIntoAlbum(
                             key,
-                            AsCopy.TakeReplyToDraft(key, keyTopic, account, true),
+                            replyId,
                             maybeReplaceText,
                             sendingMessageObjects,
                             account,
                             parentFragment,
-                            notify);
+                            notify,
+                            monoForumPeerId);
                         onSend(selectedDialogs, selectedDialogs.size(), keyTopic, info);
                         dismiss();
                         return;
                     }
+                    boolean isMonoForum = MessagesController.getInstance(account).isMonoForum(key);
+                    long monoForumPeerId = keyTopic != null && isMonoForum ? DialogObject.getPeerDialogId(keyTopic.from_id) : 0;
                     AsCopy.PerformForwardFromMyName(
                         key,
                         keyTopic,
@@ -1843,7 +1861,8 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                         sendingMessageObjects,
                         account,
                         parentFragment,
-                        notify);
+                        notify,
+                        monoForumPeerId);
                 }
                 onSend(selectedDialogs, selectedDialogs.size(), selectedDialogTopics.get(selectedDialogs.valueAt(0)), info);
             } else {
@@ -1862,6 +1881,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
         anonymButtonContainer.setScaleY(0.2f);
         anonymButtonContainer.setAlpha(0.0f);
         anonymButtonContainer.setContentDescription(LocaleController.getString("Send", R.string.Send));
+        anonymButtonContainer.setPadding(0, -dp(20), 0, 0);
         containerView.addView(
             anonymButtonContainer,
             LayoutHelper.createFrame(
@@ -1891,6 +1911,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
         nonTextButtonContainer.setScaleY(0.2f);
         nonTextButtonContainer.setAlpha(0.0f);
         nonTextButtonContainer.setContentDescription(LocaleController.getString("Send", R.string.Send));
+        nonTextButtonContainer.setPadding(0, -dp(20), 0, 0);
         containerView.addView(
             nonTextButtonContainer,
             LayoutHelper.createFrame(

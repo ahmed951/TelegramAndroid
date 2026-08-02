@@ -3,4 +3,8 @@
     <background android:drawable="@drawable/icon_01_background" />
     <foreground android:drawable="@mipmap/icon_01_foreground" />
     <monochrome android:drawable="@drawable/icon_fork" />
+<<<<<<< HEAD
 </adaptive-icon>
+=======
+</adaptive-icon>
+>>>>>>> upstream/dev

@@ -85,11 +85,22 @@ function build_one {
 	  --libdir="lib" \
 	  --includedir="include" \
 	  --buildtype=release -Denable_tests=false -Denable_tools=false -Ddefault_library=static \
+<<<<<<< HEAD
+=======
+	  ${MESON_EXTRA_OPTIONS} \
+>>>>>>> upstream/dev
 	  --cross-file <(echo "
 		[binaries]
 		c = '${CC}'
 		ar = '${AR}'
+<<<<<<< HEAD
 		
+=======
+
+		[built-in options]
+		c_args = ${MESON_C_ARGS}
+
+>>>>>>> upstream/dev
 		[host_machine]
 		system = 'android'
 		cpu_family = '${MESON_CPU_FAMILY}'
@@ -126,7 +137,12 @@ function build {
 				CPU=x86_64
 				PREFIX="$(pwd)/build/x86_64"
 				LIBVPXPREFIX=../libvpx/build/$ARCH_NAME
+<<<<<<< HEAD
 				ADDITIONAL_CONFIGURE_FLAG="--disable-asm"
+=======
+				MESON_EXTRA_OPTIONS="-Denable_asm=false"
+				MESON_C_ARGS="[]"
+>>>>>>> upstream/dev
 
 				MESON_CPU=x86_64
 				MESON_CPU_FAMILY=x86_64
@@ -143,10 +159,17 @@ function build {
 				CLANG_PREFIX=aarch64
 				BIN_MIDDLE=android
 				CPU=arm64-v8a
+<<<<<<< HEAD
 				OPTIMIZE_CFLAGS=
 				PREFIX="$(pwd)/build/arm64-v8a"
 				LIBVPXPREFIX=../libvpx/build/$CPU
 				ADDITIONAL_CONFIGURE_FLAG="--enable-neon --enable-optimizations"
+=======
+				PREFIX="$(pwd)/build/arm64-v8a"
+				LIBVPXPREFIX=../libvpx/build/$CPU
+				MESON_EXTRA_OPTIONS=""
+				MESON_C_ARGS="[]"
+>>>>>>> upstream/dev
 
 				MESON_CPU=arm64
 				MESON_CPU_FAMILY=aarch64
@@ -163,10 +186,17 @@ function build {
 				CLANG_PREFIX=armv7a
 				BIN_MIDDLE=androideabi
 				CPU=armv7-a
+<<<<<<< HEAD
 				OPTIMIZE_CFLAGS="-marm -march=$CPU"
 				PREFIX="$(pwd)/build/armeabi-v7a"
 				LIBVPXPREFIX=../libvpx/build/armeabi-v7a
 				ADDITIONAL_CONFIGURE_FLAG=--enable-neon
+=======
+				PREFIX="$(pwd)/build/armeabi-v7a"
+				LIBVPXPREFIX=../libvpx/build/armeabi-v7a
+				MESON_EXTRA_OPTIONS=""
+				MESON_C_ARGS="['-mfpu=neon', '-marm', '-march=armv7-a']"
+>>>>>>> upstream/dev
 
 				MESON_CPU=armv7
 				MESON_CPU_FAMILY=arm
@@ -183,10 +213,17 @@ function build {
 				CLANG_PREFIX=i686
 				BIN_MIDDLE=android
 				CPU=i686
+<<<<<<< HEAD
 				OPTIMIZE_CFLAGS="-march=$CPU"
 				PREFIX="$(pwd)/build/x86"
 				LIBVPXPREFIX=../libvpx/build/$ARCH
 				ADDITIONAL_CONFIGURE_FLAG="--disable-x86asm --disable-inline-asm --disable-asm"
+=======
+				PREFIX="$(pwd)/build/x86"
+				LIBVPXPREFIX=../libvpx/build/$ARCH
+				MESON_EXTRA_OPTIONS="-Denable_asm=false"
+				MESON_C_ARGS="['-march=i686']"
+>>>>>>> upstream/dev
 
 				MESON_CPU=i686
 				MESON_CPU_FAMILY=x86

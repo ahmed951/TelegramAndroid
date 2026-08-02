@@ -94,6 +94,10 @@ jint getCurrentDatacenterId(JNIEnv *env, jclass c, jint instanceNum) {
     return ConnectionsManager::getInstance(instanceNum).getCurrentDatacenterId();
 }
 
+jlong getCurrentAuthKeyId(JNIEnv *env, jclass c, jint instanceNum) {
+    return ConnectionsManager::getInstance(instanceNum).getCurrentAuthKeyId();
+}
+
 jint isTestBackend(JNIEnv *env, jclass c, jint instanceNum) {
     return ConnectionsManager::getInstance(instanceNum).isTestBackend() ? 1 : 0;
 }
@@ -241,6 +245,33 @@ void setProxySettings(JNIEnv *env, jclass c, jint instanceNum, jstring address, 
     }
 }
 
+void setWebSocketConfig(JNIEnv *env, jclass c, jint instanceNum, jboolean enabled, jstring userDomain, jstring pool) {
+    const char *userDomainStr = env->GetStringUTFChars(userDomain, 0);
+    const char *poolStr = env->GetStringUTFChars(pool, 0);
+    std::vector<std::string> domains;
+    if (poolStr != nullptr) {
+        std::string joined = poolStr;
+        size_t start = 0;
+        while (start < joined.size()) {
+            size_t nl = joined.find('\n', start);
+            if (nl == std::string::npos) {
+                nl = joined.size();
+            }
+            if (nl > start) {
+                domains.push_back(joined.substr(start, nl - start));
+            }
+            start = nl + 1;
+        }
+    }
+    ConnectionsManager::getInstance(instanceNum).setWebSocketConfig(enabled, userDomainStr != nullptr ? userDomainStr : "", domains);
+    if (userDomainStr != 0) {
+        env->ReleaseStringUTFChars(userDomain, userDomainStr);
+    }
+    if (poolStr != 0) {
+        env->ReleaseStringUTFChars(pool, poolStr);
+    }
+}
+
 jint getConnectionState(JNIEnv *env, jclass c, jint instanceNum) {
     return ConnectionsManager::getInstance(instanceNum).getConnectionState();
 }
@@ -267,6 +298,10 @@ void resumeNetwork(JNIEnv *env, jclass c, jint instanceNum, jboolean partial) {
 
 void updateDcSettings(JNIEnv *env, jclass c, jint instanceNum) {
     ConnectionsManager::getInstance(instanceNum).updateDcSettings(0, false, false);
+}
+
+void moveDatacenter(JNIEnv *env, jclass c, jint instanceNum, jint datacenterId) {
+    ConnectionsManager::getInstance(instanceNum).moveToDatacenter(datacenterId);
 }
 
 void setIpStrategy(JNIEnv *env, jclass c, jint instanceNum, jbyte value) {
@@ -519,6 +554,7 @@ static JNINativeMethod ConnectionsManagerMethods[] = {
         {"native_getCurrentTime", "(I)I", (void *) getCurrentTime},
         {"native_getCurrentPingTime", "(I)I", (void *) getCurrentPingTime},
         {"native_getCurrentDatacenterId", "(I)I", (void *) getCurrentDatacenterId},
+        {"native_getCurrentAuthKeyId", "(I)J", (void *) getCurrentAuthKeyId},
         {"native_isTestBackend", "(I)I", (void *) isTestBackend},
         {"native_getTimeDifference", "(I)I", (void *) getTimeDifference},
         {"native_sendRequest", "(IJIIIZI)V", (void *) sendRequest},
@@ -528,6 +564,7 @@ static JNINativeMethod ConnectionsManagerMethods[] = {
         {"native_bindRequestToGuid", "(III)V", (void *) bindRequestToGuid},
         {"native_applyDatacenterAddress", "(IILjava/lang/String;I)V", (void *) applyDatacenterAddress},
         {"native_setProxySettings", "(ILjava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", (void *) setProxySettings},
+        {"native_setWebSocketConfig", "(IZLjava/lang/String;Ljava/lang/String;)V", (void *) setWebSocketConfig},
         {"native_getConnectionState", "(I)I", (void *) getConnectionState},
         {"native_setUserId", "(IJ)V", (void *) setUserId},
         {"native_init", "(IIIILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IJZZZII)V", (void *) init},
@@ -538,6 +575,7 @@ static JNINativeMethod ConnectionsManagerMethods[] = {
         {"native_pauseNetwork", "(I)V", (void *) pauseNetwork},
         {"native_resumeNetwork", "(IZ)V", (void *) resumeNetwork},
         {"native_updateDcSettings", "(I)V", (void *) updateDcSettings},
+        {"native_moveDatacenter", "(II)V", (void *) moveDatacenter},
         {"native_setIpStrategy", "(IB)V", (void *) setIpStrategy},
         {"native_setNetworkAvailable", "(IZIZ)V", (void *) setNetworkAvailable},
         {"native_setPushConnectionEnabled", "(IZ)V", (void *) setPushConnectionEnabled},
@@ -551,6 +589,18 @@ static JNINativeMethod ConnectionsManagerMethods[] = {
         {"native_receivedCaptchaResult", "(I[ILjava/lang/String;)V", (void *) receivedCaptchaResult},
         {"native_isGoodPrime", "([BI)Z", (void *) isGoodPrime},
 };
+
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_org_telegram_tgnet_ConnectionsManager_native_1test_1AuthAuthorization(JNIEnv *env, jclass clazz, jlong address) {
+    auto *buffer = (NativeByteBuffer *) (intptr_t) address;
+    bool error = false;
+
+    int constructorId = buffer->readInt32(&error);
+    auth_Authorization::TLdeserialize(buffer, constructorId, 0, error);
+    return !error;
+}
 
 inline int registerNativeMethods(JNIEnv *env, const char *className, JNINativeMethod *methods, int methodsCount) {
     jclass clazz;

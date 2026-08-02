@@ -5,7 +5,6 @@ import static org.telegram.messenger.LocaleController.getString;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Base64;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 
 import androidx.annotation.IntDef;
@@ -17,8 +16,10 @@ import org.json.JSONObject;
 import org.telegram.messenger.voip.VoIPGroupNotification;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.NativeByteBuffer;
-import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.tgnet.tl.TL_update;
+
+import org.unifiedpush.android.connector.UnifiedPush;
 
 import org.unifiedpush.android.connector.UnifiedPush;
 
@@ -61,6 +62,9 @@ public class PushListenerController {
             SharedConfig.pushString = token;
             SharedConfig.pushType = pushType;
             for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                if (a != 0 && !UserConfig.getInstance(a).isClientActivated()) {
+                    continue;
+                }
                 UserConfig userConfig = UserConfig.getInstance(a);
                 userConfig.registeredForPush = false;
                 userConfig.saveConfig(false);
@@ -242,7 +246,7 @@ public class PushListenerController {
                             return;
                         }
                         case "MESSAGE_ANNOUNCEMENT": {
-                            TLRPC.TL_updateServiceNotification update = new TLRPC.TL_updateServiceNotification();
+                            TL_update.TL_updateServiceNotification update = new TL_update.TL_updateServiceNotification();
                             update.popup = false;
                             update.flags = 2;
                             update.inbox_date = (int) (time / 1000);
@@ -269,6 +273,45 @@ public class PushListenerController {
                         case "GEO_LIVE_PENDING": {
                             Utilities.stageQueue.postRunnable(() -> LocationController.getInstance(accountFinal).setNewLocationEndWatchTime());
                             countDownLatch.countDown();
+                            return;
+                        }
+                        case "OAUTH_REQUEST": {
+                            String[] args;
+                            if (json.has("loc_args")) {
+                                JSONArray loc_args = json.getJSONArray("loc_args");
+                                args = new String[loc_args.length()];
+                                for (int a = 0; a < args.length; a++) {
+                                    args[a] = loc_args.getString(a);
+                                }
+                            } else {
+                                return;
+                            }
+                            if (args.length < 2) return;
+
+                            final String data_url = custom.optString("url");
+                            if (TextUtils.isEmpty(data_url)) return;
+
+                            final long dialogId = UserObject.OAUTH; // UserConfig.getInstance(currentAccount).getClientUserId();
+                            final String messageText = LocaleController.formatString(R.string.BotAuthNotification, args[0], args[1]);
+
+                            final TLRPC.TL_message messageOwner = new TLRPC.TL_message();
+                            messageOwner.id = Integer.MAX_VALUE - 10;
+                            messageOwner.random_id = Long.MAX_VALUE - 10L;
+                            messageOwner.message = messageText;
+                            messageOwner.date = (int) (time / 1000);
+                            messageOwner.dialog_id = dialogId;
+                            messageOwner.peer_id = new TLRPC.TL_peerUser();
+                            messageOwner.peer_id.user_id = dialogId;
+                            messageOwner.flags |= 256;
+                            messageOwner.from_id = messageOwner.peer_id;
+                            messageOwner.silent = custom.has("silent") && custom.getInt("silent") != 0;
+
+                            final MessageObject messageObject = new MessageObject(currentAccount, messageOwner, messageText, data_url, null, true, false, false, false);
+                            messageObject.isOauthPush = true;
+                            ArrayList<MessageObject> arrayList = new ArrayList<>();
+                            arrayList.add(messageObject);
+                            FileLog.d("PushListenerController push OAUTH notification to NotificationsController of " + messageOwner.dialog_id);
+                            NotificationsController.getInstance(currentAccount).processNewMessages(arrayList, true, true, countDownLatch);
                             return;
                         }
                     }
@@ -340,13 +383,13 @@ public class PushListenerController {
                                 FileLog.d(tag + " received read notification max_id = " + max_id + " for dialogId = " + dialogId);
                             }
                             if (channel_id != 0) {
-                                TLRPC.TL_updateReadChannelInbox update = new TLRPC.TL_updateReadChannelInbox();
+                                TL_update.TL_updateReadChannelInbox update = new TL_update.TL_updateReadChannelInbox();
                                 update.channel_id = channel_id;
                                 update.max_id = max_id;
                                 update.still_unread_count = 0;
                                 updates.add(update);
                             } else {
-                                TLRPC.TL_updateReadHistoryInbox update = new TLRPC.TL_updateReadHistoryInbox();
+                                TL_update.TL_updateReadHistoryInbox update = new TL_update.TL_updateReadHistoryInbox();
                                 if (user_id != 0) {
                                     update.peer = new TLRPC.TL_peerUser();
                                     update.peer.user_id = user_id;
@@ -435,7 +478,7 @@ public class PushListenerController {
                             }
 
                             int story_id = -1;
-                            if (loc_key.equals("STORY_NOTEXT") || loc_key.equals("STORY_HIDDEN_AUTHOR")) {
+                            if (loc_key.equals("STORY_NOTEXT") || loc_key.equals("STORY_LIVE") || loc_key.equals("STORY_HIDDEN_AUTHOR")) {
                                 if (custom.has("story_id")) {
                                     story_id = custom.getInt("story_id");
                                 }
@@ -496,6 +539,12 @@ public class PushListenerController {
                                             msg_id = story_id;
                                             break;
                                         }
+                                        case "STORY_LIVE": {
+                                            messageText = getString(R.string.StoryLiveNotificationSingle);
+                                            message1 = null;
+                                            msg_id = story_id;
+                                            break;
+                                        }
                                         case "STORY_HIDDEN_AUTHOR": {
                                             messageText = LocaleController.formatPluralString("StoryNotificationHidden", 1);
                                             message1 = null;
@@ -539,6 +588,18 @@ public class PushListenerController {
                                             userName = args[0];
                                             messageText = LocaleController.formatString(R.string.NotificationMessageUniqueStarGiftUpgrade, args[0]);
                                             message1 = getString(R.string.Gift2UniqueUpgradeNotification);
+                                            break;
+                                        }
+                                        case "MESSAGE_STARGIFT_PREPAID_UPGRADE": {
+                                            userName = args[0];
+                                            messageText = LocaleController.formatPluralStringComma("NotificationMessageUniqueStarGiftPrepaidUpgrade", Integer.parseInt(args[1]), args[0]);
+                                            message1 = getString(R.string.Gift2UniquePrepaidUpgradeNotification);
+                                            break;
+                                        }
+                                        case "MESSAGE_STARGIFT_UNPACK_UPGRADE": {
+                                            userName = args[0];
+                                            messageText = LocaleController.formatString(R.string.NotificationMessageUniqueStarGiftUnpackUpgrade, args[0]);
+                                            message1 = getString(R.string.Gift2UniqueUnpackUpgradeNotification);
                                             break;
                                         }
                                         case "MESSAGE_PAID_MEDIA": {
@@ -729,8 +790,12 @@ public class PushListenerController {
                                             localMessage = true;
                                             break;
                                         }
+                                        case "MESSAGE_SUGGEST_BIRTHDAY": {
+                                            messageText = LocaleController.formatString(R.string.NotificationMessageSuggestBirthday, args[0]);
+                                            break;
+                                        }
                                         case "MESSAGES": {
-                                            messageText = LocaleController.formatString("NotificationMessageAlbum", R.string.NotificationMessageAlbum, args[0]);
+                                            messageText = LocaleController.formatString(R.string.NotificationMessageAlbum, args[0]);
                                             localMessage = true;
                                             break;
                                         }
@@ -1408,6 +1473,7 @@ public class PushListenerController {
                                     messageObject.isStoryReactionPush = loc_key.startsWith("REACT_STORY");
                                     messageObject.isReactionPush = !messageObject.isStoryReactionPush && (loc_key.startsWith("REACT_") || loc_key.startsWith("CHAT_REACT_"));
                                     messageObject.isStoryPush = loc_key.equals("STORY_NOTEXT") || loc_key.equals("STORY_HIDDEN_AUTHOR");
+                                    messageObject.isLiveStoryPush = loc_key.equals("STORY_LIVE");
                                     messageObject.isStoryMentionPush = loc_key.equals("MESSAGE_STORY_MENTION");
                                     messageObject.isStoryPushHidden = loc_key.equals("STORY_HIDDEN_AUTHOR");
                                     ArrayList<MessageObject> arrayList = new ArrayList<>();
@@ -1673,12 +1739,20 @@ public class PushListenerController {
     }
     public final static class UnifiedPushListenerServiceProvider implements IPushListenerServiceProvider {
         public final static UnifiedPushListenerServiceProvider INSTANCE = new UnifiedPushListenerServiceProvider();
+<<<<<<< HEAD
+=======
+        private final static UnifiedPushService mService = new UnifiedPushService();
+>>>>>>> upstream/dev
 
         private UnifiedPushListenerServiceProvider(){};
 
         @Override
         public boolean hasServices() {
+<<<<<<< HEAD
             return !UnifiedPush.getDistributors(ApplicationLoader.applicationContext, new ArrayList()).isEmpty();
+=======
+            return !UnifiedPush.getDistributors(ApplicationLoader.applicationContext).isEmpty();
+>>>>>>> upstream/dev
         }
 
         @Override
@@ -1688,6 +1762,7 @@ public class PushListenerController {
 
         @Override
         public void onRequestPushToken() {
+<<<<<<< HEAD
             String currentPushString = SharedConfig.pushString;
             if (!TextUtils.isEmpty(currentPushString)) {
                 if (BuildVars.DEBUG_PRIVATE_VERSION && BuildVars.LOGS_ENABLED) {
@@ -1719,6 +1794,42 @@ public class PushListenerController {
                     FileLog.e(e);
                 }
             });
+=======
+            if (SharedConfig.disableUnifiedPush) {
+                UnifiedPush.unregisterApp(ApplicationLoader.applicationContext, "default");
+            } else {
+                String currentPushString = SharedConfig.pushString;
+                if (!TextUtils.isEmpty(currentPushString)) {
+                    if (BuildVars.DEBUG_PRIVATE_VERSION && BuildVars.LOGS_ENABLED) {
+                        FileLog.d("UnifiedPush endpoint = " + currentPushString);
+                    }
+                } else {
+                    if (BuildVars.LOGS_ENABLED) {
+                        FileLog.d("No UnifiedPush string found");
+                    }
+                }
+                Utilities.globalQueue.postRunnable(() -> {
+                    try {
+                        SharedConfig.pushStringGetTimeStart = SystemClock.elapsedRealtime();
+                        SharedConfig.saveConfig();
+                        if (UnifiedPush.getAckDistributor(ApplicationLoader.applicationContext) == null) {
+                            List<String> distributors = UnifiedPush.getDistributors(ApplicationLoader.applicationContext);
+                            if (distributors.size() > 0) {
+                                String distributor = distributors.get(0);
+                                UnifiedPush.saveDistributor(ApplicationLoader.applicationContext, distributor);
+                            }
+                        }
+                        UnifiedPush.register(
+                                ApplicationLoader.applicationContext,
+                                "default",
+                                "Telegram Simple Push",
+                                null);
+                    } catch (Throwable e) {
+                        FileLog.e(e);
+                    }
+                });
+            }
+>>>>>>> upstream/dev
         }
 
         @Override

@@ -136,24 +136,23 @@ ConnectionsManager::~ConnectionsManager() {
 }
 
 ConnectionsManager& ConnectionsManager::getInstance(int32_t instanceNum) {
-    switch (instanceNum) {
-        case 0:
-            static ConnectionsManager instance0(0);
-            return instance0;
-        case 1:
-            static ConnectionsManager instance1(1);
-            return instance1;
-        case 2:
-            static ConnectionsManager instance2(2);
-            return instance2;
-        case 3:
-            static ConnectionsManager instance3(3);
-            return instance3;
-        case 4:
-        default:
-            static ConnectionsManager instance4(4);
-            return instance4;
+    if (instanceNum < 0 || instanceNum >= MAX_ACCOUNT_COUNT) {
+        if (LOGS_ENABLED) DEBUG_E("invalid account index %d", instanceNum);
+        instanceNum = 0;
     }
+
+    static ConnectionsManager *instances[MAX_ACCOUNT_COUNT] = {};
+    static pthread_mutex_t instancesMutex = PTHREAD_MUTEX_INITIALIZER;
+
+    pthread_mutex_lock(&instancesMutex);
+    ConnectionsManager *instance = instances[instanceNum];
+    if (instance == nullptr) {
+        instance = new ConnectionsManager(instanceNum);
+        instances[instanceNum] = instance;
+    }
+    pthread_mutex_unlock(&instancesMutex);
+
+    return *instance;
 }
 
 int ConnectionsManager::callEvents(int64_t now) {
@@ -234,7 +233,7 @@ void ConnectionsManager::select() {
             lastPushPingTime = now;
             uint8_t offset;
             RAND_bytes(&offset, 1);
-            nextPingTimeOffset = 60000 * 3 + (offset % 40) - 20;
+            nextPingTimeOffset = (useWebSocket && !isWebSocketSuppressed() ? 60000 : 60000 * 3) + (offset % 40) - 20;
             if (datacenter != nullptr) {
                 sendPing(datacenter, true);
             }
@@ -583,6 +582,11 @@ int32_t ConnectionsManager::getCurrentPingTime() {
 uint32_t ConnectionsManager::getCurrentDatacenterId() {
     Datacenter *datacenter = getDatacenterWithId(DEFAULT_DATACENTER_ID);
     return datacenter != nullptr ? datacenter->getDatacenterId() : INT_MAX;
+}
+
+int64_t ConnectionsManager::getCurrentAuthKeyId() {
+    Datacenter *datacenter = getDatacenterWithId(DEFAULT_DATACENTER_ID);
+    return datacenter != nullptr ? datacenter->getPermanentAuthKeyId() : 0;
 }
 
 bool ConnectionsManager::isTestBackend() {
@@ -1239,7 +1243,7 @@ void ConnectionsManager::processServerResponse(TLObject *message, int64_t messag
         }
         RpcError *error = hasResult ? dynamic_cast<RpcError *>(response->result.get()) : nullptr;
         if (error != nullptr) {
-            if (LOGS_ENABLED) DEBUG_E("message_id %lld connection(%p, account%u, dc%u, type %d) rpc error %d: %s", messageId, connection, instanceNum, datacenter->getDatacenterId(), connection->getConnectionType(), error->error_code, error->error_message.c_str());
+            if (LOGS_ENABLED) DEBUG_E("message_id %lld req_msg_id %lld connection(%p, account%u, dc%u, type %d) rpc error %d: %s", messageId, resultMid, connection, instanceNum, datacenter->getDatacenterId(), connection->getConnectionType(), error->error_code, error->error_message.c_str());
             if (error->error_code == 303) {
                 uint32_t migrateToDatacenterId = DEFAULT_DATACENTER_ID;
 
@@ -1271,7 +1275,7 @@ void ConnectionsManager::processServerResponse(TLObject *message, int64_t messag
                 if (!request->respondsToMessageId(resultMid)) {
                     continue;
                 }
-                if (LOGS_ENABLED) DEBUG_D("got response for request %p - %s (messageId = 0x%" PRIx64 ")", request->rawRequest, typeid(*request->rawRequest).name(), request->messageId);
+                if (LOGS_ENABLED) DEBUG_D("got response for request %p, req_id = %d - %s (messageId = 0x%" PRIx64 ")", request->rawRequest, request->requestToken, typeid(*request->rawRequest).name(), request->messageId);
                 bool discardResponse = false;
                 bool isError = false;
                 bool allowInitConnection = true;
@@ -1727,7 +1731,7 @@ void ConnectionsManager::processServerResponse(TLObject *message, int64_t messag
             processServerResponse(object, messageId, messageSeqNo, messageSalt, connection, innerMsgId, containerMessageId);
             delete object;
         } else {
-            if (LOGS_ENABLED) DEBUG_D("connection(%p, account%u, dc%u, type %d) received unparsed from gzip object on %0x" PRIx64, connection, instanceNum, datacenter->getDatacenterId(), connection->getConnectionType(), messageId);
+            if (LOGS_ENABLED) DEBUG_D("connection(%p, account%u, dc%u, type %d) received unparsed from gzip object on 0x%" PRIx64, connection, instanceNum, datacenter->getDatacenterId(), connection->getConnectionType(), messageId);
             if (delegate != nullptr) {
                 delegate->onUnparsedMessageReceived(messageId, data, connection->getConnectionType(), instanceNum);
             }
@@ -2580,13 +2584,15 @@ void ConnectionsManager::processRequestQueue(uint32_t connectionTypes, uint32_t 
             forceThisRequest = false;
         }
 
-        if ((forceThisRequest || (
+        bool failedButTimeToTryAgain = (
             abs(currentTime - request->startTime) > maxTimeout && (
                 currentTime >= request->minStartTime ||
                 (request->failedByFloodWait != 0 && (request->minStartTime - currentTime) > request->failedByFloodWait) ||
                 (request->failedByFloodWait == 0 && abs(currentTime - request->minStartTime) >= 60)
             )
-        )) && !request->awaitingIntegrityCheck && !request->awaitingCaptchaCheck) {
+        );
+
+        if ((forceThisRequest || failedButTimeToTryAgain) && !request->awaitingIntegrityCheck && !request->awaitingCaptchaCheck) {
             if (!forceThisRequest && request->connectionToken > 0) {
                 if ((request->connectionType & ConnectionTypeGeneric || request->connectionType & ConnectionTypeTemp) && request->connectionToken == connection->getConnectionToken()) {
 //                    if (LOGS_ENABLED) DEBUG_D("request token is valid, not retrying %s (%p)", typeInfo.name(), request->rawRequest);
@@ -2609,17 +2615,15 @@ void ConnectionsManager::processRequestQueue(uint32_t connectionTypes, uint32_t 
             request->retryCount++;
 
             if (!request->failedBySalt) {
-                if (request->connectionType & ConnectionTypeDownload) {
-                    uint32_t retryMax = 10;
-                    if (!(request->requestFlags & RequestFlagForceDownload)) {
-                        if (request->failedByFloodWait) {
-                            retryMax = 2;
-                        } else {
-                            retryMax = 6;
-                        }
+                if (request->connectionType & ConnectionTypeDownload && (!request->failedByFloodWait || !failedButTimeToTryAgain)) {
+                    uint32_t retryMax;
+                    if (request->requestFlags & RequestFlagForceDownload) {
+                        retryMax = 10;
+                    } else {
+                        retryMax = 6;
                     }
                     if (request->retryCount >= retryMax && !request->premiumFloodWait) {
-                        if (LOGS_ENABLED) DEBUG_E("timed out %s, message_id = 0x%" PRIx64, typeInfo.name(), request->messageId);
+                        if (LOGS_ENABLED) DEBUG_E("timed out %s (%d/%d), req_id = %d, message_id = 0x%" PRIx64, typeInfo.name(), request->retryCount, retryMax, request->requestToken, request->messageId);
                         auto error = new TL_error();
                         error->code = -123;
                         error->text = "RETRY_LIMIT";
@@ -3740,6 +3744,161 @@ void ConnectionsManager::setProxySettings(std::string address, uint16_t port, st
     });
 }
 
+void ConnectionsManager::setWebSocketConfig(bool value, std::string userDomain, std::vector<std::string> pool) {
+    scheduleTask([&, value, userDomain, pool] {
+        if (useWebSocket == value && webSocketUserDomain == userDomain && webSocketDomainPool == pool) {
+            return;
+        }
+        bool endpointChanged = useWebSocket != value || webSocketUserDomain != userDomain;
+        useWebSocket = value;
+        webSocketUserDomain = userDomain;
+        webSocketDomainPool = pool;
+        resetWebSocketHealth();
+        if (LOGS_ENABLED) DEBUG_D("websocket transport %s, %d pool domains, user domain '%s'", value ? "enabled" : "disabled", (int) pool.size(), userDomain.c_str());
+        if (!endpointChanged) {
+            return;
+        }
+        for (auto & datacenter : datacenters) {
+            datacenter.second->suspendConnections(true);
+        }
+        Datacenter *datacenter = getDatacenterWithId(DEFAULT_DATACENTER_ID);
+        if (datacenter != nullptr && datacenter->isHandshakingAny()) {
+            datacenter->beginHandshake(HandshakeTypeCurrent, true);
+        }
+        processRequestQueue(0, 0);
+    });
+}
+
+static int64_t webSocketEscalatedCooldown(int32_t strikes) {
+    int64_t cooldown = 45000;
+    for (int32_t i = 1; i < strikes && cooldown < 300000; i++) {
+        cooldown *= 2;
+    }
+    return cooldown > 300000 ? 300000 : cooldown;
+}
+
+bool ConnectionsManager::webSocketMediaDirectDash1Available(uint32_t datacenterId) {
+    if (!webSocketUserDomain.empty()) {
+        return false;
+    }
+    auto it = webSocketDirectDash1Cooldown.find(datacenterId);
+    return it == webSocketDirectDash1Cooldown.end() || it->second <= getCurrentTimeMonotonicMillis();
+}
+
+std::string ConnectionsManager::getWebSocketDomainForDc(uint32_t datacenterId, bool isMedia) {
+    if (!webSocketUserDomain.empty()) {
+        return webSocketUserDomain;
+    }
+    int64_t now = getCurrentTimeMonotonicMillis();
+    uint32_t slot = datacenterId * 2 + (isMedia ? 1 : 0);
+    auto directCooldown = webSocketDirectCooldownUntil.find(slot);
+    if (directCooldown == webSocketDirectCooldownUntil.end() || directCooldown->second <= now) {
+        return "";
+    }
+    if (webSocketDomainPool.empty()) {
+        return "";
+    }
+    auto current = webSocketDcDomain.find(datacenterId);
+    if (current != webSocketDcDomain.end()) {
+        auto cooldown = webSocketDomainCooldownUntil.find(current->second);
+        if (cooldown == webSocketDomainCooldownUntil.end() || cooldown->second <= now) {
+            return current->second;
+        }
+    }
+    std::string picked;
+    int64_t soonestCooldown = 0;
+    size_t poolSize = webSocketDomainPool.size();
+    for (size_t i = 0; i < poolSize; i++) {
+        const std::string &domain = webSocketDomainPool[(webSocketRotation + i) % poolSize];
+        auto cooldown = webSocketDomainCooldownUntil.find(domain);
+        if (cooldown == webSocketDomainCooldownUntil.end() || cooldown->second <= now) {
+            picked = domain;
+            break;
+        }
+        if (picked.empty() || cooldown->second < soonestCooldown) {
+            soonestCooldown = cooldown->second;
+            picked = domain;
+        }
+    }
+    webSocketRotation++;
+    webSocketDcDomain[datacenterId] = picked;
+    return picked;
+}
+
+void ConnectionsManager::markWebSocketDomainResult(uint32_t datacenterId, bool isMedia, std::string domain, bool dash1, bool success) {
+    uint32_t slot = datacenterId * 2 + (isMedia ? 1 : 0);
+    if (success) {
+        webSocketConsecutiveFailures = 0;
+        webSocketSuppressedUntil = 0;
+        if (webSocketUserDomain.empty()) {
+            if (domain.empty()) {
+                webSocketDirectCooldownUntil.erase(slot);
+                webSocketDirectStrikes.erase(slot);
+            } else {
+                webSocketDomainCooldownUntil.erase(domain);
+                webSocketDomainStrikes.erase(domain);
+            }
+            if (dash1) {
+                webSocketDirectDash1Cooldown.erase(datacenterId);
+                webSocketDirectDash1Strikes.erase(datacenterId);
+            }
+        }
+        return;
+    }
+    if (webSocketUserDomain.empty()) {
+        if (domain.empty() && dash1) {
+            int32_t strikes = ++webSocketDirectDash1Strikes[datacenterId];
+            int64_t cooldown = webSocketEscalatedCooldown(strikes);
+            webSocketDirectDash1Cooldown[datacenterId] = getCurrentTimeMonotonicMillis() + cooldown;
+            if (LOGS_ENABLED) DEBUG_D("websocket dc%u media-1 direct cooldown %lld ms (strike %d)", datacenterId, (long long) cooldown, strikes);
+            return;
+        }
+        if (domain.empty()) {
+            int32_t strikes = ++webSocketDirectStrikes[slot];
+            int64_t cooldown = webSocketEscalatedCooldown(strikes);
+            webSocketDirectCooldownUntil[slot] = getCurrentTimeMonotonicMillis() + cooldown;
+            if (LOGS_ENABLED) DEBUG_D("websocket dc%u%s direct cooldown %lld ms (strike %d)", datacenterId, isMedia ? " media" : "", (long long) cooldown, strikes);
+        } else {
+            int64_t now = getCurrentTimeMonotonicMillis();
+            auto existingCooldown = webSocketDomainCooldownUntil.find(domain);
+            if (existingCooldown == webSocketDomainCooldownUntil.end() || existingCooldown->second <= now) {
+                int32_t strikes = ++webSocketDomainStrikes[domain];
+                int64_t cooldown = webSocketEscalatedCooldown(strikes);
+                webSocketDomainCooldownUntil[domain] = now + cooldown;
+                if (LOGS_ENABLED) DEBUG_D("websocket domain %s cooldown %lld ms (strike %d)", domain.c_str(), (long long) cooldown, strikes);
+            }
+            auto current = webSocketDcDomain.find(datacenterId);
+            if (current != webSocketDcDomain.end() && current->second == domain) {
+                webSocketDcDomain.erase(current);
+            }
+        }
+    }
+    bool directProbeWithPoolAvailable = domain.empty() && webSocketUserDomain.empty() && !webSocketDomainPool.empty();
+    if (!directProbeWithPoolAvailable && ++webSocketConsecutiveFailures >= 6) {
+        webSocketSuppressedUntil = getCurrentTimeMonotonicMillis() + 60000;
+        if (LOGS_ENABLED) DEBUG_D("websocket suppressed, falling back to tcp for 60s (%d consecutive failures)", webSocketConsecutiveFailures);
+    }
+}
+
+void ConnectionsManager::resetWebSocketHealth() {
+    webSocketDcDomain.clear();
+    webSocketDomainCooldownUntil.clear();
+    webSocketDomainStrikes.clear();
+    webSocketDirectCooldownUntil.clear();
+    webSocketDirectStrikes.clear();
+    webSocketDirectDash1Cooldown.clear();
+    webSocketDirectDash1Strikes.clear();
+    webSocketConsecutiveFailures = 0;
+    webSocketSuppressedUntil = 0;
+}
+
+bool ConnectionsManager::isWebSocketSuppressed() {
+    if (webSocketSuppressedUntil != 0 && getCurrentTimeMonotonicMillis() >= webSocketSuppressedUntil) {
+        webSocketSuppressedUntil = 0;
+    }
+    return webSocketSuppressedUntil != 0;
+}
+
 void ConnectionsManager::setLangCode(std::string langCode) {
     scheduleTask([&, langCode] {
         if (currentLangCode == langCode) {
@@ -3832,9 +3991,14 @@ void ConnectionsManager::pauseNetwork() {
 
 void ConnectionsManager::setNetworkAvailable(bool value, int32_t type, bool slow) {
     scheduleTask([&, value, type, slow] {
+        bool networkPathChanged = currentNetworkType != type || (!networkAvailable && value);
         networkAvailable = value;
         currentNetworkType = type;
         networkSlow = slow;
+        if (useWebSocket && networkPathChanged) {
+            resetWebSocketHealth();
+            if (LOGS_ENABLED) DEBUG_D("websocket health reset after network change");
+        }
         if (!networkAvailable) {
             connectionState = ConnectionStateWaitingForNetwork;
         } else {

@@ -4,12 +4,16 @@ Date: Sat, 26 Jun 2021 16:56:55 +0200
 Subject: [PATCH] [PATCH] Compilation magic 2
 
 ---
+<<<<<<< HEAD
  libavcodec/get_bits.h | 221 ++--------------------------------
  libavcodec/golomb.h   | 269 ------------------------------------------
  2 files changed, 13 insertions(+), 477 deletions(-)
 
 diff --git a/libavcodec/get_bits.h b/libavcodec/get_bits.h
 index 66fb877..a0695d3 100644
+=======
+
+>>>>>>> upstream/dev
 --- a/libavcodec/get_bits.h
 +++ b/libavcodec/get_bits.h
 @@ -29,13 +29,9 @@
@@ -29,11 +33,18 @@ index 66fb877..a0695d3 100644
  
  /*
   * Safe bitstream reading:
+<<<<<<< HEAD
 @@ -313,72 +309,12 @@ static inline void skip_remaining(GetBitContext *s, unsigned n)
  }
  #endif
  
 -/**
+=======
+@@ -314,71 +310,11 @@
+ #endif
+ 
+ /**
+>>>>>>> upstream/dev
 - * Read MPEG-1 dc-style VLC (sign bit + mantissa with no MSB).
 - * if MSB not set it is negative
 - * @param n length in bits
@@ -93,7 +104,11 @@ index 66fb877..a0695d3 100644
 -    return tmp;
 -}
 -
+<<<<<<< HEAD
  /**
+=======
+-/**
+>>>>>>> upstream/dev
   * Read 1-25 bits.
   */
  static inline unsigned int get_bits(GetBitContext *s, int n)
@@ -103,7 +118,11 @@ index 66fb877..a0695d3 100644
  #if CACHED_BITSTREAM_READER
  
      av_assert2(n>0 && n<=32);
+<<<<<<< HEAD
 @@ -409,61 +345,6 @@ static inline unsigned int get_bits(GetBitContext *s, int n)
+=======
+@@ -409,61 +345,6 @@
+>>>>>>> upstream/dev
      return tmp;
  }
  
@@ -165,7 +184,11 @@ index 66fb877..a0695d3 100644
  static inline void skip_bits(GetBitContext *s, int n)
  {
  #if CACHED_BITSTREAM_READER
+<<<<<<< HEAD
 @@ -530,11 +411,6 @@ static inline unsigned int get_bits1(GetBitContext *s)
+=======
+@@ -530,11 +411,6 @@
+>>>>>>> upstream/dev
  #endif
  }
  
@@ -177,7 +200,11 @@ index 66fb877..a0695d3 100644
  static inline void skip_bits1(GetBitContext *s)
  {
      skip_bits(s, 1);
+<<<<<<< HEAD
 @@ -584,31 +460,6 @@ static inline uint64_t get_bits64(GetBitContext *s, int n)
+=======
+@@ -584,31 +460,6 @@
+>>>>>>> upstream/dev
      }
  }
  
@@ -209,7 +236,11 @@ index 66fb877..a0695d3 100644
  static inline int check_marker(void *logctx, GetBitContext *s, const char *msg)
  {
      int bit = get_bits1(s);
+<<<<<<< HEAD
 @@ -772,62 +623,6 @@ static inline const uint8_t *align_get_bits(GetBitContext *s)
+=======
+@@ -772,62 +623,6 @@
+>>>>>>> upstream/dev
          SKIP_BITS(name, gb, n);                                 \
      } while (0)
  
@@ -272,7 +303,11 @@ index 66fb877..a0695d3 100644
  static inline int decode012(GetBitContext *gb)
  {
      int n;
+<<<<<<< HEAD
 @@ -865,4 +660,14 @@ static inline int skip_1stop_8data_bits(GetBitContext *gb)
+=======
+@@ -865,4 +660,14 @@
+>>>>>>> upstream/dev
      return 0;
  }
  
@@ -287,8 +322,11 @@ index 66fb877..a0695d3 100644
 +}
 +
  #endif /* AVCODEC_GET_BITS_H */
+<<<<<<< HEAD
 diff --git a/libavcodec/golomb.h b/libavcodec/golomb.h
 index 7fd46a9..637111a 100644
+=======
+>>>>>>> upstream/dev
 --- a/libavcodec/golomb.h
 +++ b/libavcodec/golomb.h
 @@ -33,7 +33,6 @@
@@ -299,12 +337,21 @@ index 7fd46a9..637111a 100644
  
  #define INVALID_VLC           0x80000000
  
+<<<<<<< HEAD
 @@ -422,144 +421,6 @@ static inline int get_ur_golomb(GetBitContext *gb, int k, int limit,
+=======
+@@ -425,148 +424,6 @@
+>>>>>>> upstream/dev
  #endif
  }
  
 -/**
 - * read unsigned golomb rice code (jpegls).
+<<<<<<< HEAD
+=======
+- *
+- * @returns -1 on error
+>>>>>>> upstream/dev
 - */
 -static inline int get_ur_golomb_jpegls(GetBitContext *gb, int k, int limit,
 -                                       int esc_len)
@@ -333,7 +380,11 @@ index 7fd46a9..637111a 100644
 -            buf = get_bits_long(gb, k);
 -
 -            return buf + (i << k);
+<<<<<<< HEAD
 -        } else if (i == limit - 1) {
+=======
+-        } else if (esc_len && i == limit - 1) {
+>>>>>>> upstream/dev
 -            buf = get_bits_long(gb, esc_len);
 -
 -            return buf + 1;
@@ -390,7 +441,11 @@ index 7fd46a9..637111a 100644
 -            }
 -
 -            buf += ((SUINT)i << k);
+<<<<<<< HEAD
 -        } else if (i == limit - 1) {
+=======
+-        } else if (esc_len && i == limit - 1) {
+>>>>>>> upstream/dev
 -            buf = SHOW_UBITS(re, gb, esc_len);
 -            LAST_SKIP_BITS(re, gb, esc_len);
 -
@@ -416,6 +471,11 @@ index 7fd46a9..637111a 100644
 -
 -/**
 - * read signed golomb rice code (flac).
+<<<<<<< HEAD
+=======
+- *
+- * @returns INT_MIN on error
+>>>>>>> upstream/dev
 - */
 -static inline int get_sr_golomb_flac(GetBitContext *gb, int k, int limit,
 -                                     int esc_len)
@@ -444,7 +504,11 @@ index 7fd46a9..637111a 100644
  #ifdef TRACE
  
  static inline int get_ue(GetBitContext *s, const char *file, const char *func,
+<<<<<<< HEAD
 @@ -614,134 +475,4 @@ static inline int get_te(GetBitContext *s, int r, char *file, const char *func,
+=======
+@@ -621,134 +478,4 @@
+>>>>>>> upstream/dev
  
  #endif /* TRACE */
  
@@ -579,6 +643,9 @@ index 7fd46a9..637111a 100644
 -}
 -
  #endif /* AVCODEC_GOLOMB_H */
+<<<<<<< HEAD
 -- 
 2.32.0
 
+=======
+>>>>>>> upstream/dev

@@ -23,6 +23,7 @@ import android.graphics.ColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
@@ -133,7 +134,6 @@ import org.telegram.ui.Components.Paint.Views.RoundView;
 import org.telegram.ui.Components.Paint.Views.StickerView;
 import org.telegram.ui.Components.Paint.Views.TextPaintView;
 import org.telegram.ui.Components.Paint.Views.WeatherView;
-import org.telegram.ui.Components.Point;
 import org.telegram.ui.Components.Premium.PremiumFeatureBottomSheet;
 import org.telegram.ui.Components.RLottieDrawable;
 import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
@@ -1193,7 +1193,7 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
         forceChanges = true;
 
         Size paintingSize = getPaintingSize();
-        Point position = startPositionRelativeToEntity(null);
+        PointF position = startPositionRelativeToEntity(null);
         float w = entitiesView.getMeasuredWidth() <= 0 ? this.w : entitiesView.getMeasuredWidth();
         int maxWidth = (int) w - dp(14 + 26 + 18);
         LocationView view = new LocationView(getContext(), position, currentAccount, location, mediaArea, w / 240f, maxWidth);
@@ -1228,7 +1228,7 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
         forceChanges = true;
 
         Size paintingSize = getPaintingSize();
-        Point position = startPositionRelativeToEntity(null);
+        PointF position = startPositionRelativeToEntity(null);
         float w = entitiesView.getMeasuredWidth() <= 0 ? this.w : entitiesView.getMeasuredWidth();
         int maxWidth = (int) w - dp(14 + 26 + 18);
         WeatherView view = new WeatherView(getContext(), position, currentAccount, weather, w / 240f, maxWidth);
@@ -1263,7 +1263,7 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
         forceChanges = true;
 
         Size paintingSize = getPaintingSize();
-        Point position = startPositionRelativeToEntity(null);
+        PointF position = startPositionRelativeToEntity(null);
         float w = entitiesView.getMeasuredWidth() <= 0 ? this.w : entitiesView.getMeasuredWidth();
         int maxWidth = (int) w - dp(14 + 26 + 18);
         LinkView view = new LinkView(getContext(), position, currentAccount, link, mediaArea, w / 360f, maxWidth, 3);
@@ -1296,7 +1296,7 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
         onTextAdd();
 
         Size paintingSize = getPaintingSize();
-        Point position = startPositionRelativeToEntity(null);
+        PointF position = startPositionRelativeToEntity(null);
         TextPaintView view = new TextPaintView(getContext(), position, (int) (paintingSize.width / 9), "", colorSwatch, selectedTextType);
         view.setMinMaxFontSize((int) (0.5f * (paintingSize.width / 9f)), (int) (2f * (paintingSize.width / 9f)), () -> {
             if (weightChooserView != null) {
@@ -2170,7 +2170,7 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
         }, false, true, false, resourcesProvider);
         locationAlert.setDelegate(new ChatAttachAlert.ChatAttachViewDelegate() {
             @Override
-            public void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, long effectId, boolean invertMedia, boolean forceDocument, long payStars) {
+            public void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, int scheduleRepeatPeriod, long effectId, boolean invertMedia, boolean forceDocument, long payStars) {
 
             }
         });
@@ -2189,66 +2189,71 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
     }
 
     private void showAudioAlert(Utilities.Callback<MessageObject> onAudioSelected) {
-        final ChatAttachAlert[] audioAlert = new ChatAttachAlert[1];
-        ChatActivity chatActivity = new ChatActivity(null) {
-            @Override
-            public long getDialogId() {
-                return 0;
-            }
-
-            @Override
-            public Theme.ResourcesProvider getResourceProvider() {
-                return resourcesProvider;
-            }
-
-            @Override
-            public boolean isKeyboardVisible() {
-                return false;
-            }
-
-            @Override
-            public Activity getParentActivity() {
-                return AndroidUtilities.findActivity(PaintView.this.getContext());
-            }
-
-            @Override
-            public TLRPC.User getCurrentUser() {
-                return UserConfig.getInstance(currentAccount).getCurrentUser();
-            }
-
-            @Override
-            public boolean isLightStatusBar() {
-                return false;
-            }
-
-            @Override
-            public void sendAudio(ArrayList<MessageObject> audios, CharSequence caption, boolean notify, int scheduleDate, long effectId, boolean invertMedia, long payStars) {
-                if (audios.isEmpty()) {
-                    return;
-                }
-                MessageObject msg = audios.get(0);
-                if (msg == null) {
-                    return;
-                }
-                onAudioSelected.run(msg);
-                if (audioAlert[0] != null) {
-                    audioAlert[0].dismiss();
-                }
-            }
-        };
-        audioAlert[0] = new ChatAttachAlert(getContext(), chatActivity, false, true, false, resourcesProvider);
-        audioAlert[0].setDelegate(new ChatAttachAlert.ChatAttachViewDelegate() {
-            @Override
-            public void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, long effectId, boolean invertMedia, boolean forceDocument, long payStars) {
-
-            }
-        });
-        audioAlert[0].setOnDismissListener(di -> {
+        final SelectAudioAlert sheet = new SelectAudioAlert(getContext(), onAudioSelected, new DarkThemeResourceProvider());
+        sheet.setOnDismissListener(() -> {
             onOpenCloseStickersAlert(false);
         });
-        audioAlert[0].setStoryAudioPicker();
-        audioAlert[0].init();
-        audioAlert[0].show();
+        sheet.show();
+//        final ChatAttachAlert[] audioAlert = new ChatAttachAlert[1];
+//        ChatActivity chatActivity = new ChatActivity(null) {
+//            @Override
+//            public long getDialogId() {
+//                return 0;
+//            }
+//
+//            @Override
+//            public Theme.ResourcesProvider getResourceProvider() {
+//                return resourcesProvider;
+//            }
+//
+//            @Override
+//            public boolean isKeyboardVisible() {
+//                return false;
+//            }
+//
+//            @Override
+//            public Activity getParentActivity() {
+//                return AndroidUtilities.findActivity(PaintView.this.getContext());
+//            }
+//
+//            @Override
+//            public TLRPC.User getCurrentUser() {
+//                return UserConfig.getInstance(currentAccount).getCurrentUser();
+//            }
+//
+//            @Override
+//            public boolean isLightStatusBar() {
+//                return false;
+//            }
+//
+//            @Override
+//            public void sendAudio(ArrayList<MessageObject> audios, CharSequence caption, boolean notify, int scheduleDate, int scheduledRepeatPeriod, long effectId, boolean invertMedia, long payStars) {
+//                if (audios.isEmpty()) {
+//                    return;
+//                }
+//                MessageObject msg = audios.get(0);
+//                if (msg == null) {
+//                    return;
+//                }
+//                onAudioSelected.run(msg);
+//                if (audioAlert[0] != null) {
+//                    audioAlert[0].dismiss();
+//                }
+//            }
+//        };
+//        audioAlert[0] = new ChatAttachAlert(getContext(), chatActivity, false, true, false, resourcesProvider);
+//        audioAlert[0].setDelegate(new ChatAttachAlert.ChatAttachViewDelegate() {
+//            @Override
+//            public void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, int scheduleRepeatPeriod, long effectId, boolean invertMedia, boolean forceDocument, long payStars) {
+//
+//            }
+//        });
+//        audioAlert[0].setOnDismissListener(di -> {
+//            onOpenCloseStickersAlert(false);
+//        });
+//        audioAlert[0].setStoryAudioPicker();
+//        audioAlert[0].init();
+//        audioAlert[0].show();
     }
 
     protected void onAudioSelect(MessageObject document) {}
@@ -2460,7 +2465,7 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
                         linkView.marker.setupLayout();
                         entity.viewWidth = linkView.marker.padx + (int) Math.ceil(linkView.marker.w) + linkView.marker.padx;
                         entity.viewHeight = linkView.marker.pady + (int) Math.ceil(linkView.marker.h) + linkView.marker.pady;
-                        Point p = linkView.getPosition();
+                        PointF p = linkView.getPosition();
                         p.y += .3f * h;
                         linkView.setPosition(p);
                         continue;
@@ -2493,7 +2498,9 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
                 }
                 view.setX(entity.x * w - entity.viewWidth * (1 - entity.scale) / 2);
                 view.setY(entity.y * h - entity.viewHeight * (1 - entity.scale) / 2);
-                view.setPosition(new Point(view.getX() + entity.viewWidth / 2f, view.getY() + entity.viewHeight / 2f));
+                float x = view.getX() + entity.viewWidth / 2f;
+                float y = view.getY() + entity.viewHeight / 2f;
+                view.setPosition(new PointF(x, y));
                 view.setScale(entity.scale);
                 view.setRotation((float) (-entity.rotation / Math.PI * 180));
             }
@@ -2600,7 +2607,7 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
                     continue;
                 }
                 EntityView entity = (EntityView) v;
-                Point position = entity.getPosition();
+                PointF position = entity.getPosition();
                 boolean drawThisEntity = true;
                 VideoEditedInfo.MediaEntity mediaEntity = new VideoEditedInfo.MediaEntity();
                 ImageReceiver makeVisibleAfterwards = null;
@@ -3006,7 +3013,7 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
                     }
                     if (mediaEntity.mediaArea != null && mediaEntity.mediaArea.coordinates != null && radius > 0) {
                         mediaEntity.mediaArea.coordinates.flags |= 1;
-                        mediaEntity.mediaArea.coordinates.radius = (scaleX * radius / (float) entitiesView.getMeasuredWidth()) * 100;
+                        mediaEntity.mediaArea.coordinates.radius = (scaleX * radius / v.getWidth()) * 100;
                     }
                 }
                 if (drawThisEntity && (drawEntities || drawMessage && mediaEntity.type == VideoEditedInfo.MediaEntity.TYPE_MESSAGE) && bitmap != null) {
@@ -4205,7 +4212,7 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
         }
 
         EntityView entityView = null;
-        Point position = startPositionRelativeToEntity(thisEntityView);
+        PointF position = startPositionRelativeToEntity(thisEntityView);
 
         if (thisEntityView instanceof StickerView) {
             StickerView newStickerView = new StickerView(getContext(), (StickerView) thisEntityView, position);
@@ -4229,22 +4236,24 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
         appearAnimation(entityView);
     }
 
-    private Point startPositionRelativeToEntity(EntityView entityView) {
+    private PointF startPositionRelativeToEntity(EntityView entityView) {
         float offset = 200.0f;
         if (currentCropState != null) {
             offset /= currentCropState.cropScale;
         }
 
         if (entityView != null) {
-            Point position = entityView.getPosition();
+            PointF position = entityView.getPosition();
             offset = Math.min(entityView.getHeight(), entityView.getWidth()) * .2f;
-            return new Point(position.x + offset, position.y + offset);
+            float x = position.x + offset;
+            float y = position.y + offset;
+            return new PointF(x, y);
         } else {
             float minimalDistance = 100.0f;
             if (currentCropState != null) {
                 minimalDistance /= currentCropState.cropScale;
             }
-            Point position = centerPositionForEntity();
+            PointF position = centerPositionForEntity();
             for (int i = 0; i < 10; ++i) {
                 boolean occupied = false;
                 for (int index = 0; index < entitiesView.getChildCount(); index++) {
@@ -4252,7 +4261,7 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
                     if (!(view instanceof EntityView) || view instanceof MessageEntityView)
                         continue;
 
-                    Point location = ((EntityView) view).getPosition();
+                    PointF location = ((EntityView) view).getPosition();
                     float distance = (float) Math.sqrt(Math.pow(location.x - position.x, 2) + Math.pow(location.y - position.y, 2));
                     if (distance < minimalDistance) {
                         offset = Math.min(view.getHeight(), view.getWidth()) * .2f;
@@ -4263,7 +4272,9 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
                 if (!occupied) {
                     break;
                 } else {
-                    position = new Point(position.x + offset, position.y + offset);
+                    float x = position.x + offset;
+                    float y = position.y + offset;
+                    position = new PointF(x, y);
                 }
             }
             return position;
@@ -4445,13 +4456,15 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
         }).start();
     }
 
-    private Point centerPositionForEntity() {
+    private PointF centerPositionForEntity() {
         int w = entitiesView.getMeasuredWidth(), h = entitiesView.getMeasuredHeight();
         if (w <= 0) w = this.w;
         if (h <= 0) h = this.h;
         float x = w / 2.0f;
         float y = h / 2.0f;
-        return new Point(x, y);
+        float x1 = x;
+        float y1 = y;
+        return new PointF(x1, y1);
     }
 
     private PaintView.StickerPosition calculateStickerPosition(TLRPC.Document document) {
@@ -4551,7 +4564,9 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
         Size size = new Size(side, side);
         float x = w - size.width / 2f - dp(16);
         float y = dp(72) + size.height / 2f;
-        RoundView view = new RoundView(getContext(), new Point(x, y), 0, 1f, size, thumbPath);
+        float x1 = x;
+        float y1 = y;
+        RoundView view = new RoundView(getContext(), new PointF(x1, y1), 0, 1f, size, thumbPath);
         view.setDelegate(this);
         entitiesView.addView(view);
         checkEntitiesIsVideo();
@@ -4638,7 +4653,7 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
 
     private ReactionWidgetEntityView createReactionWidget(boolean select) {
         Size size = new Size(dp(106), dp(106));
-        Point position = centerPositionForEntity();
+        PointF position = centerPositionForEntity();
         boolean goodPosition;
         //compute best position
         if (entitiesView.getMeasuredHeight() > 0) {
@@ -4846,11 +4861,11 @@ public class PaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPai
     }
 
     private static class StickerPosition {
-        private Point position;
+        private PointF position;
         private float scale;
         private float angle;
 
-        StickerPosition(Point position, float scale, float angle) {
+        StickerPosition(PointF position, float scale, float angle) {
             this.position = position;
             this.scale = scale;
             this.angle = angle;

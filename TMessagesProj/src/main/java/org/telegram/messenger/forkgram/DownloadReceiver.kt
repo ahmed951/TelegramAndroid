@@ -29,6 +29,29 @@ class DownloadReceiver : BroadcastReceiver() {
         val downloadFileUri = dManager.getUriForDownloadedFile(downloadApkId)
         if (downloadFileUri != null) {
             Log.d("DownloadManager", downloadFileUri.toString())
+<<<<<<< HEAD
+=======
+
+            // Save APK path for cleanup on next launch
+            try {
+                val query = DownloadManager.Query().setFilterById(downloadApkId)
+                val cursor = dManager.query(query)
+                if (cursor.moveToFirst()) {
+                    val columnIndex = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI)
+                    if (columnIndex >= 0) {
+                        val localUri = cursor.getString(columnIndex)
+                        if (localUri != null) {
+                            val filePath = localUri.replace("file://", "")
+                            AppUpdater.saveApkPathPublic(context, filePath)
+                        }
+                    }
+                }
+                cursor.close()
+            } catch (e: Exception) {
+                Log.e("DownloadReceiver", "Error saving APK path", e)
+            }
+
+>>>>>>> upstream/dev
             install.setDataAndType(downloadFileUri, "application/vnd.android.package-archive")
             if ((Build.VERSION.SDK_INT >= 24)) {
                 install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)

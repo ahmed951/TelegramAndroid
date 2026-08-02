@@ -19,6 +19,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.BitmapDrawable;
@@ -52,7 +53,6 @@ import org.telegram.ui.Cells.ChatMessageCell;
 import org.telegram.ui.Components.AnimatedFileDrawable;
 import org.telegram.ui.Components.BackgroundGradientDrawable;
 import org.telegram.ui.Components.MotionBackgroundDrawable;
-import org.telegram.ui.Components.Point;
 import org.telegram.ui.Components.RLottieDrawable;
 import org.telegram.ui.Components.SlotsDrawable;
 import org.telegram.ui.Components.ThemePreviewDrawable;
@@ -156,6 +156,7 @@ public class ImageLoader {
     private File telegramPath = null;
 
     public static final String AUTOPLAY_FILTER = "g";
+    public static final String AUTOPLAY_FILTER_NONLOOP = "gl";
 
     public static boolean hasAutoplayFilter(String s) {
         if (s == null) {
@@ -163,7 +164,7 @@ public class ImageLoader {
         }
         String[] words = s.split("_");
         for (int i = 0; i < words.length; ++i) {
-            if (AUTOPLAY_FILTER.equals(words[i]) || "pframe".equals(words[i])) {
+            if (AUTOPLAY_FILTER.equals(words[i]) || AUTOPLAY_FILTER_NONLOOP.equals(words[i]) || "pframe".equals(words[i])) {
                 return true;
             }
         }
@@ -823,7 +824,8 @@ public class ImageLoader {
                         imgView.setImageBitmapByKey(bitmapDrawable, kf, ImageReceiver.TYPE_IMAGE, false, finalImageReceiverGuidsArray.get(a));
                     }
 
-                    memCache.put(kf, bitmapDrawable);
+                    if (!kf.contains("nocache"))
+                        memCache.put(kf, bitmapDrawable);
                 });
             } catch (Throwable e) {
                 FileLog.e(e);
@@ -1101,14 +1103,14 @@ public class ImageLoader {
                         cacheOptions.compressQuality = BitmapsCache.COMPRESS_QUALITY_DEFAULT;
                     }
                 }
-                if ((isAnimatedAvatar(cacheImage.filter) || AUTOPLAY_FILTER.equals(cacheImage.filter)) && !(cacheImage.imageLocation.document instanceof TLRPC.TL_documentEncrypted) && !precache) {
+                if ((isAnimatedAvatar(cacheImage.filter) || AUTOPLAY_FILTER.equals(cacheImage.filter) || AUTOPLAY_FILTER_NONLOOP.equals(cacheImage.filter)) && !(cacheImage.imageLocation.document instanceof TLRPC.TL_documentEncrypted) && !precache) {
                     TLRPC.Document document = cacheImage.imageLocation.document instanceof TLRPC.Document ? cacheImage.imageLocation.document : null;
                     long size = document != null ? cacheImage.size : cacheImage.imageLocation.currentSize;
                     int cacheType = document != null ? 1 : 0;
                     if (cacheImage.cacheType > 1) {
                         cacheType = cacheImage.cacheType;
                     }
-                    fileDrawable = new AnimatedFileDrawable(cacheImage.finalFilePath, fistFrame, notCreateStream ? 0 : size, cacheImage.priority, notCreateStream ? null : document, document == null && !notCreateStream ? cacheImage.imageLocation : null, cacheImage.parentObject, seekTo, cacheImage.currentAccount, false, 0, 0, cacheOptions, cacheType);
+                    fileDrawable = new AnimatedFileDrawable(cacheImage.finalFilePath, fistFrame, notCreateStream ? 0 : size, cacheImage.priority, notCreateStream ? null : document, document == null && !notCreateStream ? cacheImage.imageLocation : null, cacheImage.parentObject, seekTo, cacheImage.currentAccount, false, 0, 0, cacheOptions, cacheType, !AUTOPLAY_FILTER_NONLOOP.equals(cacheImage.filter));
                     fileDrawable.setIsWebmSticker(MessageObject.isWebM(document) || MessageObject.isVideoSticker(document) || isAnimatedAvatar(cacheImage.filter));
                 } else {
 
@@ -1129,7 +1131,7 @@ public class ImageLoader {
                     if (cacheImage.cacheType > 1) {
                         cacheType = cacheImage.cacheType;
                     }
-                    fileDrawable = new AnimatedFileDrawable(cacheImage.finalFilePath, createDecoder, 0, cacheImage.priority, notCreateStream ? null : cacheImage.imageLocation.document, null, null, seekTo, cacheImage.currentAccount, false, w, h, cacheOptions, cacheType);
+                    fileDrawable = new AnimatedFileDrawable(cacheImage.finalFilePath, createDecoder, 0, cacheImage.priority, notCreateStream ? null : cacheImage.imageLocation.document, null, null, seekTo, cacheImage.currentAccount, false, w, h, cacheOptions, cacheType, true);
                     fileDrawable.setIsWebmSticker(MessageObject.isWebM(cacheImage.imageLocation.document) || MessageObject.isVideoSticker(cacheImage.imageLocation.document) || isAnimatedAvatar(cacheImage.filter));
                 }
                 if (fistFrame) {
@@ -1731,9 +1733,9 @@ public class ImageLoader {
                         if (cacheImage.key.endsWith("_f")) {
                             wallpaperMemCache.put(cacheImage.key, bitmapDrawable);
                             incrementUseCount = false;
-                        } else if (!cacheImage.key.endsWith("_isc") && bitmapDrawable.getBitmap().getWidth() <= 80 * AndroidUtilities.density && bitmapDrawable.getBitmap().getHeight() <= 80 * AndroidUtilities.density) {
+                        } else if (!cacheImage.key.endsWith("_isc") && !cacheImage.key.endsWith("_nocache") && bitmapDrawable.getBitmap().getWidth() <= 80 * AndroidUtilities.density && bitmapDrawable.getBitmap().getHeight() <= 80 * AndroidUtilities.density) {
                             smallImagesMemCache.put(cacheImage.key, bitmapDrawable);
-                        } else {
+                        } else if (!cacheImage.key.endsWith("_nocache")) {
                             memCache.put(cacheImage.key, bitmapDrawable);
                         }
                         toSet = bitmapDrawable;
@@ -2163,136 +2165,10 @@ public class ImageLoader {
         mediaDirs.put(FileLoader.MEDIA_DIR_CACHE, cachePath);
 
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-            final int currentAccount = a;
-            FileLoader.getInstance(a).setDelegate(new FileLoader.FileLoaderDelegate() {
-                @Override
-                public void fileUploadProgressChanged(FileUploadOperation operation, final String location, long uploadedSize, long totalSize, final boolean isEncrypted) {
-                    fileProgresses.put(location, new long[]{uploadedSize, totalSize});
-                    long currentTime = SystemClock.elapsedRealtime();
-                    if (operation.lastProgressUpdateTime == 0 || operation.lastProgressUpdateTime < currentTime - 100 || uploadedSize == totalSize) {
-                        operation.lastProgressUpdateTime = currentTime;
-
-                        AndroidUtilities.runOnUIThread(() -> NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.fileUploadProgressChanged, location, uploadedSize, totalSize, isEncrypted));
-                    }
-                }
-
-                @Override
-                public void fileDidUploaded(final String location, final TLRPC.InputFile inputFile, final TLRPC.InputEncryptedFile inputEncryptedFile, final byte[] key, final byte[] iv, final long totalFileSize) {
-                    Utilities.stageQueue.postRunnable(() -> {
-                        AndroidUtilities.runOnUIThread(() -> NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.fileUploaded, location, inputFile, inputEncryptedFile, key, iv, totalFileSize));
-                        fileProgresses.remove(location);
-                    });
-                }
-
-                @Override
-                public void fileDidFailedUpload(final String location, final boolean isEncrypted) {
-                    Utilities.stageQueue.postRunnable(() -> {
-                        AndroidUtilities.runOnUIThread(() -> NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.fileUploadFailed, location, isEncrypted));
-                        fileProgresses.remove(location);
-                    });
-                }
-
-                @Override
-                public void fileDidLoaded(final String location, final File finalFile, Object parentObject, final int type) {
-                    fileProgresses.remove(location);
-                    AndroidUtilities.runOnUIThread(() -> {
-                        if (finalFile != null && (location.endsWith(".mp4") || location.endsWith(".jpg"))) {
-                            FilePathDatabase.FileMeta meta = FileLoader.getFileMetadataFromParent(currentAccount, parentObject);
-                            if (meta != null) {
-                                MessageObject messageObject = null;
-                                if (parentObject instanceof MessageObject) {
-                                    messageObject = (MessageObject) parentObject;
-                                }
-                                long dialogId = meta.dialogId;
-                                int flag;
-                                if (dialogId >= 0) {
-                                    flag = SharedConfig.SAVE_TO_GALLERY_FLAG_PEER;
-                                } else {
-                                    if (ChatObject.isChannelAndNotMegaGroup(MessagesController.getInstance(currentAccount).getChat(-dialogId))) {
-                                        flag = SharedConfig.SAVE_TO_GALLERY_FLAG_CHANNELS;
-                                    } else {
-                                        flag = SharedConfig.SAVE_TO_GALLERY_FLAG_GROUP;
-                                    }
-                                }
-                                if (SaveToGallerySettingsHelper.needSave(flag, meta, messageObject, currentAccount)) {
-                                    AndroidUtilities.addMediaToGallery(finalFile.toString());
-                                }
-                            }
-                        }
-                        NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.fileLoaded, location, finalFile);
-                        ImageLoader.this.fileDidLoaded(location, finalFile, type);
-                    });
-                }
-
-                @Override
-                public void fileDidFailedLoad(final String location, final int canceled) {
-                    fileProgresses.remove(location);
-                    AndroidUtilities.runOnUIThread(() -> {
-                        ImageLoader.this.fileDidFailedLoad(location, canceled);
-                        NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.fileLoadFailed, location, canceled);
-                    });
-                }
-
-                @Override
-                public void fileLoadProgressChanged(FileLoadOperation operation, final String location, long uploadedSize, long totalSize) {
-                    fileProgresses.put(location, new long[]{uploadedSize, totalSize});
-
-                    if (!imageLoadingByUrlPframe.isEmpty() && operation.checkPrefixPreloadFinished()) {
-                        imageLoadQueue.postRunnable(() -> {
-                            CacheImage img = imageLoadingByUrlPframe.remove(location);
-                            if (img == null) {
-                                return;
-                            }
-                            imageLoadingByUrl.remove(location);
-                            ArrayList<CacheOutTask> tasks = new ArrayList<>();
-                            for (int a = 0; a < img.imageReceiverArray.size(); a++) {
-                                String key = img.keys.get(a);
-                                String filter = img.filters.get(a);
-                                int type = img.types.get(a);
-                                ImageReceiver imageReceiver = img.imageReceiverArray.get(a);
-                                int guid = img.imageReceiverGuidsArray.get(a);
-                                CacheImage cacheImage = imageLoadingByKeys.get(key);
-                                if (cacheImage == null) {
-                                    cacheImage = new CacheImage();
-                                    cacheImage.priority = img.priority;
-                                    cacheImage.secureDocument = img.secureDocument;
-                                    cacheImage.currentAccount = img.currentAccount;
-                                    cacheImage.finalFilePath = operation.getCurrentFile();
-                                    cacheImage.parentObject = img.parentObject;
-                                    cacheImage.isPFrame = img.isPFrame;
-                                    cacheImage.key = key;
-                                    cacheImage.imageLocation = img.imageLocation;
-                                    cacheImage.type = type;
-                                    cacheImage.ext = img.ext;
-                                    cacheImage.encryptionKeyPath = img.encryptionKeyPath;
-                                    cacheImage.cacheTask = new CacheOutTask(cacheImage);
-                                    cacheImage.filter = filter;
-                                    cacheImage.imageType = img.imageType;
-                                    cacheImage.cacheType = img.cacheType;
-                                    imageLoadingByKeys.put(key, cacheImage);
-                                    imageLoadingKeys.add(cutFilter(key));
-                                    tasks.add(cacheImage.cacheTask);
-                                }
-                                cacheImage.addImageReceiver(imageReceiver, key, filter, type, guid);
-                            }
-                            for (int a = 0; a < tasks.size(); a++) {
-                                CacheOutTask task = tasks.get(a);
-                                if (task.cacheImage.type == ImageReceiver.TYPE_THUMB) {
-                                    cacheThumbOutQueue.postRunnable(task);
-                                } else {
-                                    cacheOutQueue.postRunnable(task, task.cacheImage.priority);
-                                }
-                            }
-                        });
-                    }
-                    long currentTime = SystemClock.elapsedRealtime();
-                    if (operation.lastProgressUpdateTime == 0 || operation.lastProgressUpdateTime < currentTime - 500 || uploadedSize == 0) {
-                        operation.lastProgressUpdateTime = currentTime;
-
-                        AndroidUtilities.runOnUIThread(() -> NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.fileLoadProgressChanged, location, uploadedSize, totalSize));
-                    }
-                }
-            });
+            if (a != 0 && !UserConfig.getInstance(a).isClientActivated()) {
+                continue;
+            }
+            setupFileLoaderDelegate(a);
         }
         FileLoader.setMediaDirs(mediaDirs);
 
@@ -2333,6 +2209,138 @@ public class ImageLoader {
         }
 
         checkMediaPaths();
+    }
+
+    public void setupFileLoaderDelegate(int currentAccount) {
+        FileLoader.getInstance(currentAccount).setDelegate(new FileLoader.FileLoaderDelegate() {
+            @Override
+            public void fileUploadProgressChanged(FileUploadOperation operation, final String location, long uploadedSize, long totalSize, final boolean isEncrypted) {
+                fileProgresses.put(location, new long[]{uploadedSize, totalSize});
+                long currentTime = SystemClock.elapsedRealtime();
+                if (operation.lastProgressUpdateTime == 0 || operation.lastProgressUpdateTime < currentTime - 100 || uploadedSize == totalSize) {
+                    operation.lastProgressUpdateTime = currentTime;
+
+                    AndroidUtilities.runOnUIThread(() -> NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.fileUploadProgressChanged, location, uploadedSize, totalSize, isEncrypted));
+                }
+            }
+
+            @Override
+            public void fileDidUploaded(final String location, final TLRPC.InputFile inputFile, final TLRPC.InputEncryptedFile inputEncryptedFile, final byte[] key, final byte[] iv, final long totalFileSize) {
+                Utilities.stageQueue.postRunnable(() -> {
+                    AndroidUtilities.runOnUIThread(() -> NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.fileUploaded, location, inputFile, inputEncryptedFile, key, iv, totalFileSize));
+                    fileProgresses.remove(location);
+                });
+            }
+
+            @Override
+            public void fileDidFailedUpload(final String location, final boolean isEncrypted) {
+                Utilities.stageQueue.postRunnable(() -> {
+                    AndroidUtilities.runOnUIThread(() -> NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.fileUploadFailed, location, isEncrypted));
+                    fileProgresses.remove(location);
+                });
+            }
+
+            @Override
+            public void fileDidLoaded(final String location, final File finalFile, Object parentObject, final int type) {
+                fileProgresses.remove(location);
+                AndroidUtilities.runOnUIThread(() -> {
+                    if (finalFile != null && (location.endsWith(".mp4") || location.endsWith(".jpg"))) {
+                        FilePathDatabase.FileMeta meta = FileLoader.getFileMetadataFromParent(currentAccount, parentObject);
+                        if (meta != null) {
+                            MessageObject messageObject = null;
+                            if (parentObject instanceof MessageObject) {
+                                messageObject = (MessageObject) parentObject;
+                            }
+                            long dialogId = meta.dialogId;
+                            int flag;
+                            if (dialogId >= 0) {
+                                flag = SharedConfig.SAVE_TO_GALLERY_FLAG_PEER;
+                            } else {
+                                if (ChatObject.isChannelAndNotMegaGroup(MessagesController.getInstance(currentAccount).getChat(-dialogId))) {
+                                    flag = SharedConfig.SAVE_TO_GALLERY_FLAG_CHANNELS;
+                                } else {
+                                    flag = SharedConfig.SAVE_TO_GALLERY_FLAG_GROUP;
+                                }
+                            }
+                            if (SaveToGallerySettingsHelper.needSave(flag, meta, messageObject, currentAccount)) {
+                                AndroidUtilities.addMediaToGallery(finalFile.toString());
+                            }
+                        }
+                    }
+                    NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.fileLoaded, location, finalFile);
+                    ImageLoader.this.fileDidLoaded(location, finalFile, type);
+                });
+            }
+
+            @Override
+            public void fileDidFailedLoad(final String location, final int canceled) {
+                fileProgresses.remove(location);
+                AndroidUtilities.runOnUIThread(() -> {
+                    ImageLoader.this.fileDidFailedLoad(location, canceled);
+                    NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.fileLoadFailed, location, canceled);
+                });
+            }
+
+            @Override
+            public void fileLoadProgressChanged(FileLoadOperation operation, final String location, long uploadedSize, long totalSize) {
+                fileProgresses.put(location, new long[]{uploadedSize, totalSize});
+
+                if (!imageLoadingByUrlPframe.isEmpty() && operation.checkPrefixPreloadFinished()) {
+                    imageLoadQueue.postRunnable(() -> {
+                        CacheImage img = imageLoadingByUrlPframe.remove(location);
+                        if (img == null) {
+                            return;
+                        }
+                        imageLoadingByUrl.remove(location);
+                        ArrayList<CacheOutTask> tasks = new ArrayList<>();
+                        for (int a = 0; a < img.imageReceiverArray.size(); a++) {
+                            String key = img.keys.get(a);
+                            String filter = img.filters.get(a);
+                            int type = img.types.get(a);
+                            ImageReceiver imageReceiver = img.imageReceiverArray.get(a);
+                            int guid = img.imageReceiverGuidsArray.get(a);
+                            CacheImage cacheImage = imageLoadingByKeys.get(key);
+                            if (cacheImage == null) {
+                                cacheImage = new CacheImage();
+                                cacheImage.priority = img.priority;
+                                cacheImage.secureDocument = img.secureDocument;
+                                cacheImage.currentAccount = img.currentAccount;
+                                cacheImage.finalFilePath = operation.getCurrentFile();
+                                cacheImage.parentObject = img.parentObject;
+                                cacheImage.isPFrame = img.isPFrame;
+                                cacheImage.key = key;
+                                cacheImage.imageLocation = img.imageLocation;
+                                cacheImage.type = type;
+                                cacheImage.ext = img.ext;
+                                cacheImage.encryptionKeyPath = img.encryptionKeyPath;
+                                cacheImage.cacheTask = new CacheOutTask(cacheImage);
+                                cacheImage.filter = filter;
+                                cacheImage.imageType = img.imageType;
+                                cacheImage.cacheType = img.cacheType;
+                                imageLoadingByKeys.put(key, cacheImage);
+                                imageLoadingKeys.add(cutFilter(key));
+                                tasks.add(cacheImage.cacheTask);
+                            }
+                            cacheImage.addImageReceiver(imageReceiver, key, filter, type, guid);
+                        }
+                        for (int a = 0; a < tasks.size(); a++) {
+                            CacheOutTask task = tasks.get(a);
+                            if (task.cacheImage.type == ImageReceiver.TYPE_THUMB) {
+                                cacheThumbOutQueue.postRunnable(task);
+                            } else {
+                                cacheOutQueue.postRunnable(task, task.cacheImage.priority);
+                            }
+                        }
+                    });
+                }
+                long currentTime = SystemClock.elapsedRealtime();
+                if (operation.lastProgressUpdateTime == 0 || operation.lastProgressUpdateTime < currentTime - 500 || uploadedSize == 0) {
+                    operation.lastProgressUpdateTime = currentTime;
+
+                    AndroidUtilities.runOnUIThread(() -> NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.fileLoadProgressChanged, location, uploadedSize, totalSize));
+                }
+            }
+        });
     }
 
     private int sizeOfBitmapDrawable(BitmapDrawable value) {
@@ -2926,6 +2934,7 @@ public class ImageLoader {
     }
 
     public void putImageToCache(BitmapDrawable bitmap, String key, boolean smallImage) {
+        if (key.endsWith("_nocache")) return;
         if (smallImage) {
             smallImagesMemCache.put(key, bitmap);
         } else {
@@ -3137,7 +3146,7 @@ public class ImageLoader {
                             img.secureDocument = imageLocation.secureDocument;
                             onlyCache = img.secureDocument.secureFile.dc_id == Integer.MIN_VALUE;
                             cacheFile = new File(FileLoader.getDirectory(FileLoader.MEDIA_DIR_CACHE), url);
-                        } else if (!(AUTOPLAY_FILTER.equals(filter) || isAnimatedAvatar(filter)) && (cacheType != 0 || size <= 0 || imageLocation.path != null || isEncrypted)) {
+                        } else if (!(AUTOPLAY_FILTER.equals(filter) || AUTOPLAY_FILTER_NONLOOP.equals(filter) || isAnimatedAvatar(filter)) && (cacheType != 0 || size <= 0 || imageLocation.path != null || isEncrypted)) {
                             cacheFile = new File(FileLoader.getDirectory(FileLoader.MEDIA_DIR_CACHE), url);
                             if (cacheFile.exists()) {
                                 cacheFileExists = true;
@@ -3174,7 +3183,7 @@ public class ImageLoader {
                             } else {
                                 cacheFile = new File(FileLoader.getDirectory(FileLoader.MEDIA_DIR_DOCUMENT), url);
                             }
-                            if ((isAnimatedAvatar(filter) || AUTOPLAY_FILTER.equals(filter)) && !cacheFile.exists()) {
+                            if ((isAnimatedAvatar(filter) || AUTOPLAY_FILTER.equals(filter) || AUTOPLAY_FILTER_NONLOOP.equals(filter)) && !cacheFile.exists()) {
                                 cacheFile = new File(FileLoader.getDirectory(FileLoader.MEDIA_DIR_CACHE), document.dc_id + "_" + document.id + ".temp");
                             }
                             if (document instanceof DocumentObject.ThemeDocument) {
@@ -3205,7 +3214,7 @@ public class ImageLoader {
                             } else {
                                 cacheFile = new File(FileLoader.getDirectory(FileLoader.MEDIA_DIR_IMAGE), url);
                             }
-                            if (isAnimatedAvatar(filter) || AUTOPLAY_FILTER.equals(filter) && imageLocation.location != null && !cacheFile.exists()) {
+                            if (isAnimatedAvatar(filter) || (AUTOPLAY_FILTER.equals(filter) || AUTOPLAY_FILTER_NONLOOP.equals(filter)) && imageLocation.location != null && !cacheFile.exists()) {
                                 cacheFile = new File(FileLoader.getDirectory(FileLoader.MEDIA_DIR_CACHE), imageLocation.location.volume_id + "_" + imageLocation.location.local_id + ".temp");
                             }
                         }
@@ -3213,7 +3222,7 @@ public class ImageLoader {
                             img.imageType = FileLoader.IMAGE_TYPE_ANIMATION;
                             img.size = fileSize;
                             img.isPFrame = isPFrame(filter);
-                            if (AUTOPLAY_FILTER.equals(filter) || isAnimatedAvatar(filter)) {
+                            if (AUTOPLAY_FILTER.equals(filter) || AUTOPLAY_FILTER_NONLOOP.equals(filter) || isAnimatedAvatar(filter)) {
                                 onlyCache = true;
                             }
                         }
@@ -3682,11 +3691,11 @@ public class ImageLoader {
 
     private void httpFileLoadError(final String location) {
         imageLoadQueue.postRunnable(() -> {
-            CacheImage img = imageLoadingByUrl.get(location);
+            final CacheImage img = imageLoadingByUrl.get(location);
             if (img == null) {
                 return;
             }
-            HttpImageTask oldTask = img.httpTask;
+            final HttpImageTask oldTask = img.httpTask;
             if (oldTask != null) {
                 img.httpTask = new HttpImageTask(oldTask.cacheImage, oldTask.imageSize);
                 httpTasks.add(img.httpTask);
@@ -4590,7 +4599,7 @@ public class ImageLoader {
             if (file.exists() && message.grouped_id == 0) {
                 int h = photoSize.h;
                 int w = photoSize.w;
-                Point point = ChatMessageCell.getMessageSize(w, h);
+                PointF point = ChatMessageCell.getMessageSize(w, h);
                 String key = String.format(Locale.US, "%d_%d@%d_%d_b", photoSize.location.volume_id, photoSize.location.local_id, (int) (point.x / AndroidUtilities.density), (int) (point.y / AndroidUtilities.density));
                 if (!getInstance().isInMemCache(key, false)) {
                     Bitmap bitmap = ImageLoader.loadBitmap(file.getPath(), null, (int) (point.x / AndroidUtilities.density), (int) (point.y / AndroidUtilities.density), false);
@@ -4626,7 +4635,7 @@ public class ImageLoader {
                         }
                     }
 
-                    Point point = ChatMessageCell.getMessageSize(w, h);
+                    PointF point = ChatMessageCell.getMessageSize(w, h);
                     String key = String.format(Locale.US, "%s_false@%d_%d_b", ImageLocation.getStrippedKey(message, message, size), (int) (point.x / AndroidUtilities.density), (int) (point.y / AndroidUtilities.density));
                     if (!getInstance().isInMemCache(key, false)) {
                         Bitmap b = getStrippedPhotoBitmap(size.bytes, null);

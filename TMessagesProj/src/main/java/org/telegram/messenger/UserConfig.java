@@ -18,14 +18,16 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
+import org.telegram.messenger.forkgram.HiddenAccountHelper;
 
+import java.io.File;
 import java.util.Arrays;
 
 public class UserConfig extends BaseController {
 
     public static int selectedAccount;
-    public final static int MAX_ACCOUNT_DEFAULT_COUNT = 3;
-    public final static int MAX_ACCOUNT_COUNT = 4;
+    public final static int MAX_ACCOUNT_DEFAULT_COUNT = 90;
+    public final static int MAX_ACCOUNT_COUNT = 90;
 
     private final Object sync = new Object();
     private volatile boolean configLoaded;
@@ -42,6 +44,7 @@ public class UserConfig extends BaseController {
     public TL_account.tmpPassword tmpPassword;
     public int ratingLoadTime;
     public int botRatingLoadTime;
+    public int botGuestRatingLoadTime;
     public int webappRatingLoadTime;
     public boolean contactsReimported;
     public boolean hasValidDialogLoadIds;
@@ -58,8 +61,10 @@ public class UserConfig extends BaseController {
 
     public boolean notificationsSettingsLoaded;
     public boolean notificationsSignUpSettingsLoaded;
-    public boolean syncContacts = true;
+    public boolean syncContacts = false;
     public boolean suggestContacts = true;
+    public boolean showCallsTab;
+    public boolean mainTabsHiddenFork = false;
     public boolean hasSecureData;
     public int loginTime;
     public TLRPC.TL_help_termsOfService unacceptedTermsOfService;
@@ -106,6 +111,10 @@ public class UserConfig extends BaseController {
         return count;
     }
 
+    public static int getVisibleAccountsCount() {
+        return HiddenAccountHelper.getVisibleAccountsCount();
+    }
+
     public UserConfig(int instance) {
         super(instance);
     }
@@ -120,7 +129,18 @@ public class UserConfig extends BaseController {
     }
 
     public static int getMaxAccountCount() {
-        return hasPremiumOnAccounts() ? 5 : 3;
+        return MAX_ACCOUNT_COUNT;
+    }
+
+    public static boolean hasStoredConfig(int account) {
+        try {
+            String name = account == 0 ? "userconfing" : "userconfig" + account;
+            File dataDir = new File(ApplicationLoader.applicationContext.getApplicationInfo().dataDir);
+            return new File(new File(dataDir, "shared_prefs"), name + ".xml").exists();
+        } catch (Throwable e) {
+            FileLog.e(e);
+            return true;
+        }
     }
 
     public int getNewMessageId() {
@@ -153,10 +173,13 @@ public class UserConfig extends BaseController {
                     editor.putBoolean("unreadDialogsLoaded", unreadDialogsLoaded);
                     editor.putInt("ratingLoadTime", ratingLoadTime);
                     editor.putInt("botRatingLoadTime", botRatingLoadTime);
+                    editor.putInt("botGuestRatingLoadTime", botGuestRatingLoadTime);
                     editor.putInt("webappRatingLoadTime", webappRatingLoadTime);
                     editor.putBoolean("contactsReimported", contactsReimported);
                     editor.putInt("loginTime", loginTime);
                     editor.putBoolean("syncContacts", syncContacts);
+                    editor.putBoolean("showCallsTab", showCallsTab);
+                    editor.putBoolean("mainTabsHiddenFork", mainTabsHiddenFork);
                     editor.putBoolean("suggestContacts", suggestContacts);
                     editor.putBoolean("hasSecureData", hasSecureData);
                     editor.putBoolean("notificationsSettingsLoaded4", notificationsSettingsLoaded);
@@ -304,9 +327,12 @@ public class UserConfig extends BaseController {
             contactsReimported = preferences.getBoolean("contactsReimported", false);
             ratingLoadTime = preferences.getInt("ratingLoadTime", 0);
             botRatingLoadTime = preferences.getInt("botRatingLoadTime", 0);
+            botGuestRatingLoadTime = preferences.getInt("botGuestRatingLoadTime", 0);
             webappRatingLoadTime = preferences.getInt("webappRatingLoadTime", 0);
             loginTime = preferences.getInt("loginTime", currentAccount);
-            syncContacts = preferences.getBoolean("syncContacts", true);
+            syncContacts = preferences.getBoolean("syncContacts", false);
+            showCallsTab = preferences.getBoolean("showCallsTab", false);
+            mainTabsHiddenFork = preferences.getBoolean("mainTabsHiddenFork", false);
             suggestContacts = preferences.getBoolean("suggestContacts", true);
             hasSecureData = preferences.getBoolean("hasSecureData", false);
             notificationsSettingsLoaded = preferences.getBoolean("notificationsSettingsLoaded4", false);
@@ -453,7 +479,9 @@ public class UserConfig extends BaseController {
     }
 
     public void clearConfig() {
+        loadConfig();
         getPreferences().edit().clear().apply();
+        HiddenAccountHelper.clearAccount(currentAccount);
 
         sharingMyLocationUntil = 0;
         lastMyLocationShareTime = 0;
@@ -473,10 +501,13 @@ public class UserConfig extends BaseController {
         migrateOffsetAccess = -1;
         ratingLoadTime = 0;
         botRatingLoadTime = 0;
+        botGuestRatingLoadTime = 0;
         webappRatingLoadTime = 0;
         draftsLoaded = false;
         contactsReimported = true;
-        syncContacts = true;
+        syncContacts = false;
+        showCallsTab = false;
+        mainTabsHiddenFork = false;
         suggestContacts = true;
         unreadDialogsLoaded = true;
         hasValidDialogLoadIds = true;
@@ -554,6 +585,24 @@ public class UserConfig extends BaseController {
         editor.putLong("2dialogsLoadOffsetAccess" + (folderId == 0 ? "" : folderId), dialogsLoadOffsetAccess);
         editor.putBoolean("hasValidDialogLoadIds", true);
         editor.commit();
+    }
+
+    public void setShowCallsTab(boolean show) {
+        if (showCallsTab != show) {
+            showCallsTab = show;
+            saveConfig(false);
+        }
+    }
+
+    public boolean getMainTabsHiddenFork() {
+        return mainTabsHiddenFork;
+    }
+
+    public void setMainTabsHiddenFork(boolean visible) {
+        if (mainTabsHiddenFork != visible) {
+            mainTabsHiddenFork = visible;
+            saveConfig(false);
+        }
     }
 
     public boolean isPremium() {

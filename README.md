@@ -34,6 +34,13 @@ Fork Client is a fork of the official Telegram for Android application.
 - Added ability to see unread count when you want to mark as read multiple dialogs.
 - Option to directly open the archive on pulldown
 - PiP mode for YouTube's in-app player
+<<<<<<< HEAD
+=======
+- Added an option to show colored dots to quickly see when a person was last online  
+  - Yellow dot: last seen 15 minutes ago or less  
+  - Orange dot: last seen 30 minutes ago or less  
+  - Red dot: last seen 60 minutes ago or less 
+>>>>>>> upstream/dev
 
 ### Privacy Features:
 
@@ -44,7 +51,21 @@ Fork Client is a fork of the official Telegram for Android application.
 - Option to not send stickers information in photos.
 - Some features are taken from the [Telegram FOSS](https://github.com/Telegram-FOSS-Team/Telegram-FOSS).
 
+<<<<<<< HEAD
 
 
 ## Downloads:
 You can download binaries from Releases or from my [Telegram channel Forkgram](https://t.me/forkgram).
+=======
+### Privacy:
+
+Forkgram adds no telemetry, no analytics, no crash-reporting, and no third-party network endpoints on top of upstream Telegram for Android. All traffic goes only to Telegram's official servers.
+
+
+
+## Downloads:
+You can download binaries from Releases or from my [Telegram channel Forkgram](https://t.me/forkgram).
+
+## Building instructions for Debian 13:
+[BUILDING.md](BUILDING.md)
+>>>>>>> upstream/dev

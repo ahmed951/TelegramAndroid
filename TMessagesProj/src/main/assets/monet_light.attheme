@@ -1,6 +1,10 @@
 actionBarActionModeDefault=n1_50
 actionBarActionModeDefaultIcon=a1_600
+<<<<<<< HEAD
 actionBarActionModeDefaultSelector=n1_50
+=======
+actionBarActionModeDefaultSelector=n1_50_64
+>>>>>>> upstream/dev
 actionBarActionModeDefaultTop=a1_600
 actionBarActionModeReaction=a1_200
 actionBarActionModeReactionText=n1_900
@@ -10,13 +14,21 @@ actionBarDefault=n1_50
 actionBarDefaultArchived=n1_50
 actionBarDefaultArchivedIcon=a1_600
 actionBarDefaultArchivedSearch=a2_200
+<<<<<<< HEAD
 actionBarDefaultArchivedSelector=n2_800
+=======
+actionBarDefaultArchivedSelector=n2_800_64
+>>>>>>> upstream/dev
 actionBarDefaultArchivedTitle=a1_600
 actionBarDefaultIcon=a1_600
 actionBarDefaultSearch=a1_1000
 actionBarDefaultSearchArchivedPlaceholder=a1_0
 actionBarDefaultSearchPlaceholder=a1_600
+<<<<<<< HEAD
 actionBarDefaultSelector=n2_800
+=======
+actionBarDefaultSelector=n2_800_64
+>>>>>>> upstream/dev
 actionBarDefaultSubmenuBackground=n1_50
 actionBarDefaultSubmenuItem=a1_1000
 actionBarDefaultSubmenuItemIcon=a1_600
@@ -25,11 +37,19 @@ actionBarDefaultSubtitle=a1_1000
 actionBarDefaultTitle=a1_1000
 actionBarTabActiveText=a1_600
 actionBarTabLine=a1_600
+<<<<<<< HEAD
 actionBarTabSelector=a1_700
 actionBarTabUnactiveText=a2_800
 actionBarWhiteSelector=n2_800
 avatar_actionBarIconBlue=n1_1000
 avatar_actionBarSelectorBlue=a1_600
+=======
+actionBarTabSelector=a1_700_64
+actionBarTabUnactiveText=a2_800
+actionBarWhiteSelector=n2_800_64
+avatar_actionBarIconBlue=n1_1000
+avatar_actionBarSelectorBlue=a1_600_64
+>>>>>>> upstream/dev
 avatar_backgroundActionBarBlue=n1_50
 avatar_backgroundArchived=a1_600
 avatar_backgroundArchivedHidden=a1_600
@@ -101,7 +121,11 @@ chats_sentClock=a1_600
 chats_sentError=n1_400
 chats_sentErrorIcon=monetRedLight
 chats_sentReadCheck=a1_600
+<<<<<<< HEAD
 chats_tabletSelectedOverlay=n1_100
+=======
+chats_tabletSelectedOverlay=n1_100_64
+>>>>>>> upstream/dev
 chats_tabUnreadActiveBackground=a1_600
 chats_tabUnreadUnactiveBackground=a2_800
 chats_unreadCounter=a1_600
@@ -150,8 +174,13 @@ chat_emojiPanelIcon=a2_300
 chat_emojiPanelIconSelected=a1_600
 chat_emojiPanelNewTrending=a1_600
 chat_emojiPanelShadowLine=n1_50
+<<<<<<< HEAD
 chat_emojiPanelStickerPackSelector=n2_800
 chat_emojiPanelStickerPackSelectorLine=a1_600
+=======
+chat_emojiPanelStickerPackSelector=n2_800_64
+chat_emojiPanelStickerPackSelectorLine=a1_600_64
+>>>>>>> upstream/dev
 chat_emojiPanelStickerSetName=a2_500
 chat_emojiPanelStickerSetNameHighlight=a3_300
 chat_emojiPanelStickerSetNameIcon=a1_600
@@ -344,6 +373,10 @@ chat_outVoiceSeekbarSelected=n1_300
 chat_previewDurationText=n1_50
 chat_previewGameText=n1_50
 chat_recordedVoiceBackground=a1_600
+<<<<<<< HEAD
+=======
+chat_recordedVoiceDarkerBackground=a2_700
+>>>>>>> upstream/dev
 chat_recordedVoiceDot=a1_600
 chat_recordedVoicePlayPause=a1_100
 chat_recordedVoiceProgress=n1_300
@@ -358,12 +391,20 @@ chat_searchPanelIcons=a1_600
 chat_searchPanelText=a1_1000
 chat_secretChatStatusText=a1_600
 chat_secretTimeText=a1_0
+<<<<<<< HEAD
 chat_selectedBackground=n2_100
+=======
+chat_selectedBackground=n2_100_64
+>>>>>>> upstream/dev
 chat_sentError=n1_400
 chat_sentErrorIcon=monetRedLight
 chat_serviceBackground=a1_600
 chat_serviceBackgroundSelected=a1_600
+<<<<<<< HEAD
 chat_serviceBackgroundSelector=a1_700
+=======
+chat_serviceBackgroundSelector=a1_700_64
+>>>>>>> upstream/dev
 chat_serviceIcon=n1_50
 chat_serviceLink=n1_50
 chat_serviceText=n1_50
@@ -413,7 +454,11 @@ contextProgressOuter4=n1_50
 dialogBackground=n1_50
 dialogBackgroundGray=n1_50
 dialogButton=a1_600
+<<<<<<< HEAD
 dialogButtonSelector=a1_600
+=======
+dialogButtonSelector=a1_600_64
+>>>>>>> upstream/dev
 dialogCardShadow=n2_200
 dialogCameraIcon=a1_600
 dialogCheckboxSquareBackground=a1_600
@@ -503,7 +548,11 @@ key_graySectionText=a1_600
 key_player_progressCachedBackground=a2_300
 key_sheet_other=a1_600
 key_sheet_scrollUp=a1_600
+<<<<<<< HEAD
 listSelectorSDK21=251658240
+=======
+listSelectorSDK21=n1_700_64
+>>>>>>> upstream/dev
 location_actionActiveIcon=a1_600
 location_actionBackground=n1_50
 location_actionIcon=a1_600
@@ -526,7 +575,11 @@ picker_badgeText=n1_900
 picker_disabledButton=a1_600
 picker_enabledButton=a1_600
 player_actionBarItems=a1_1000
+<<<<<<< HEAD
 player_actionBarSelector=a1_600
+=======
+player_actionBarSelector=a1_600_64
+>>>>>>> upstream/dev
 player_actionBarSubtitle=a1_600
 player_actionBarTitle=a1_1000
 player_background=n1_50
@@ -561,14 +614,22 @@ profile_creatorIcon=a1_600
 profile_status=a1_1000
 profile_tabSelectedLine=a1_700
 profile_tabSelectedText=a1_700
+<<<<<<< HEAD
 profile_tabSelector=a1_600
+=======
+profile_tabSelector=a1_600_64
+>>>>>>> upstream/dev
 profile_tabText=n1_500
 profile_title=a1_1000
 profile_verifiedBackground=a1_600
 profile_verifiedCheck=a1_0
 progressCircle=a1_600
 radioBackground=a1_600
+<<<<<<< HEAD
 reactionStarSelector=n1_50
+=======
+reactionStarSelector=n1_50_64
+>>>>>>> upstream/dev
 radioBackgroundChecked=a1_600
 returnToCallBackground=n1_50
 returnToCallMutedBackground=n1_600
@@ -599,7 +660,11 @@ statisticChartRipple=a1_300
 statisticChartSignature=a1_600
 statisticChartSignatureAlpha=a1_600
 stickers_menu=a1_600
+<<<<<<< HEAD
 stickers_menuSelector=n2_200
+=======
+stickers_menuSelector=n2_200_64
+>>>>>>> upstream/dev
 stories_circle_closeFriends1=a3_400
 stories_circle_closeFriends2=a3_600
 stories_circle_dialog1=a1_400
@@ -611,8 +676,13 @@ switch2TrackChecked=a1_700
 switchTrack=n2_500
 switchTrackBlue=a1_600
 switchTrackBlueChecked=a1_600
+<<<<<<< HEAD
 switchTrackBlueSelector=a1_600
 switchTrackBlueSelectorChecked=a1_600
+=======
+switchTrackBlueSelector=a1_600_64
+switchTrackBlueSelectorChecked=a1_600_64
+>>>>>>> upstream/dev
 switchTrackBlueThumb=n1_50
 switchTrackBlueThumbChecked=n1_50
 switchTrackChecked=a1_700
@@ -627,7 +697,11 @@ undo_cancelColor=a1_200
 undo_infoColor=n1_50
 voipgroup_actionBar=n1_900
 voipgroup_actionBarItems=n1_0
+<<<<<<< HEAD
 voipgroup_actionBarItemsSelector=n1_700
+=======
+voipgroup_actionBarItemsSelector=n1_700_64
+>>>>>>> upstream/dev
 voipgroup_actionBarUnscrolled=n1_900
 voipgroup_checkMenu=a1_200
 voipgroup_connectingProgress=a2_100
@@ -642,7 +716,11 @@ voipgroup_leaveButton=a3_300
 voipgroup_leaveButtonScrolled=a3_200
 voipgroup_leaveCallMenu=a1_100
 voipgroup_listeningText=a2_300
+<<<<<<< HEAD
 voipgroup_listSelector=n1_700
+=======
+voipgroup_listSelector=n1_700_64
+>>>>>>> upstream/dev
 voipgroup_listViewBackground=n2_800
 voipgroup_listViewBackgroundUnscrolled=n2_800
 voipgroup_muteButton=a1_500
@@ -698,7 +776,11 @@ windowBackgroundWhiteBlackText=a1_1000
 windowBackgroundWhiteBlueButton=a1_600
 windowBackgroundWhiteBlueHeader=a1_600
 windowBackgroundWhiteBlueIcon=a1_600
+<<<<<<< HEAD
 windowBackgroundWhiteBlueText=a1_600
+=======
+windowBackgroundWhiteBlueText=a1_1000
+>>>>>>> upstream/dev
 windowBackgroundWhiteBlueText2=a1_700
 windowBackgroundWhiteBlueText3=a1_700
 windowBackgroundWhiteBlueText4=a1_700

@@ -1,6 +1,10 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
+<<<<<<< HEAD
     ext.kotlin_version = '1.9.23'
+=======
+    ext.kotlin_version = '2.4.10'
+>>>>>>> upstream/dev
     repositories {
         mavenCentral()
         google()

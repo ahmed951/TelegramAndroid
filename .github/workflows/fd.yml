@@ -1,8 +1,12 @@
 name: Fd
 
 on:
+<<<<<<< HEAD
   release:
     types: released
+=======
+  workflow_dispatch:
+>>>>>>> upstream/dev
 
 jobs:
   linux:

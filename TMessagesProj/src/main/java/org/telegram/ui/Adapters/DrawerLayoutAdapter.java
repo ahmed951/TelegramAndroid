@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
  * This is the source code of Telegram for Android v. 5.x.x.
  * It is licensed under GNU GPL v. 2 or later.
@@ -443,3 +444,5 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         }
     }
 }
+=======
+>>>>>>> upstream/dev

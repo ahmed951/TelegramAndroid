@@ -20,7 +20,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -31,14 +30,16 @@ import android.os.Handler;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.telephony.TelephonyManager;
-import android.util.Pair;
 import android.view.ViewGroup;
 
 import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+<<<<<<< HEAD
 import androidx.multidex.MultiDex;
+=======
+>>>>>>> upstream/dev
 
 
 import org.json.JSONObject;
@@ -46,15 +47,12 @@ import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BaseFragment;
-import org.telegram.ui.Adapters.DrawerLayoutAdapter;
 import org.telegram.ui.Components.ForegroundDetector;
-import org.telegram.ui.Components.Premium.boosts.BoostRepository;
-import org.telegram.ui.IUpdateButton;
+import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.IUpdateLayout;
 import org.telegram.ui.LauncherIconController;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Locale;
 
 public class ApplicationLoader extends Application {
@@ -89,7 +87,10 @@ public class ApplicationLoader extends Application {
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
+<<<<<<< HEAD
         MultiDex.install(this);
+=======
+>>>>>>> upstream/dev
     }
 
     public static PushListenerController.IPushListenerServiceProvider getPushProvider() {
@@ -200,6 +201,9 @@ public class ApplicationLoader extends Application {
 
                     boolean isSlow = isConnectionSlow();
                     for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                        if (a != 0 && !UserConfig.getInstance(a).isClientActivated()) {
+                            continue;
+                        }
                         ConnectionsManager.getInstance(a).checkConnection();
                         FileLoader.getInstance(a).onNetworkChanged(isSlow);
                     }
@@ -233,14 +237,24 @@ public class ApplicationLoader extends Application {
         SharedConfig.loadConfig();
         SharedPrefsHelper.init(applicationContext);
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
-            UserConfig.getInstance(a).loadConfig();
+            if (a != 0 && !UserConfig.hasStoredConfig(a)) {
+                continue;
+            }
+            UserConfig userConfig = UserConfig.getInstance(a);
+            userConfig.loadConfig();
+            if (a != 0 && !userConfig.isClientActivated()) {
+                continue;
+            }
             MessagesController.getInstance(a);
+            if (a != 0) {
+                ImageLoader.getInstance().setupFileLoaderDelegate(a);
+            }
             if (a == 0) {
                 SharedConfig.pushStringStatus = "__FIREBASE_GENERATING_SINCE_" + ConnectionsManager.getInstance(a).getCurrentTime() + "__";
             } else {
                 ConnectionsManager.getInstance(a);
             }
-            TLRPC.User user = UserConfig.getInstance(a).getCurrentUser();
+            TLRPC.User user = userConfig.getCurrentUser();
             if (user != null) {
                 MessagesController.getInstance(a).putUser(user, true);
                 SendMessagesHelper.getInstance(a).checkUnsentMessages();
@@ -255,9 +269,56 @@ public class ApplicationLoader extends Application {
 
         MediaController.getInstance();
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
+            if (a != 0 && !UserConfig.getInstance(a).isClientActivated()) {
+                continue;
+            }
             ContactsController.getInstance(a).checkAppAccount();
             DownloadController.getInstance(a);
         }
+<<<<<<< HEAD
+=======
+
+        Utilities.globalQueue.postRunnable(ApplicationLoader::cleanupUnusedAccountDirs);
+    }
+
+    private static void cleanupUnusedAccountDirs() {
+        SharedPreferences prefs = applicationContext.getSharedPreferences("fork_cleanup", Context.MODE_PRIVATE);
+        if (prefs.getBoolean("empty_account_dirs_cleaned_v2", false)) {
+            return;
+        }
+        try {
+            File filesDir = getFilesDirFixed();
+            int deleted = 0;
+            for (int a = 1; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                if (UserConfig.getInstance(a).isClientActivated()) {
+                    continue;
+                }
+                File accountDir = new File(filesDir, "account" + a);
+                if (accountDir.exists() && accountDir.isDirectory() && deleteRecursively(accountDir)) {
+                    deleted++;
+                }
+            }
+            if (BuildVars.LOGS_ENABLED) {
+                FileLog.d("Cleaned up " + deleted + " unused account directories");
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        } finally {
+            prefs.edit().putBoolean("empty_account_dirs_cleaned_v2", true).apply();
+        }
+    }
+
+    private static boolean deleteRecursively(File file) {
+        if (file.isDirectory()) {
+            File[] children = file.listFiles();
+            if (children != null) {
+                for (File child : children) {
+                    deleteRecursively(child);
+                }
+            }
+        }
+        return file.delete();
+>>>>>>> upstream/dev
     }
 
     public ApplicationLoader() {
@@ -305,6 +366,7 @@ public class ApplicationLoader extends Application {
         }
 
         NativeLoader.initNativeLibs(ApplicationLoader.applicationContext);
+
         try {
             ConnectionsManager.native_setJava(false);
         } catch (UnsatisfiedLinkError error) {
@@ -368,6 +430,7 @@ public class ApplicationLoader extends Application {
             pendingIntentFlags = PendingIntent.FLAG_MUTABLE;
         }
         if (enabled) {
+<<<<<<< HEAD
             // Check if UnifiedPush is active and working
             boolean unifiedPushActive = getPushProvider() instanceof PushListenerController.UnifiedPushListenerServiceProvider &&
                     getPushProvider().hasServices() &&
@@ -398,6 +461,51 @@ public class ApplicationLoader extends Application {
                 }
             } else {
                 Log.d("Fork Client", "UnifiedPush is active, skipping foreground service");
+=======
+            boolean unifiedPushActive = false;
+            try {
+                unifiedPushActive = org.unifiedpush.android.connector.UnifiedPush.getAckDistributor(applicationContext) != null;
+            } catch (Throwable ignore) {
+            }
+            if (unifiedPushActive) {
+                Log.d("Fork Client", "UnifiedPush is active, skipping push service watchdog");
+                try {
+                    applicationContext.stopService(new Intent(applicationContext, NotificationsService.class));
+                    AlarmManager alarm = (AlarmManager) applicationContext.getSystemService(Context.ALARM_SERVICE);
+                    if (pendingIntent != null) {
+                        alarm.cancel(pendingIntent);
+                    }
+                } catch (Throwable ignore) {
+                }
+                return;
+            }
+            Log.d("TFOSS", "Trying to start push service every minute");
+            // Telegram-FOSS: unconditionally enable push service
+            AlarmManager am = (AlarmManager) applicationContext.getSystemService(Context.ALARM_SERVICE);
+            Intent i = new Intent(applicationContext, NotificationsService.class);
+            try {
+            pendingIntent = PendingIntent.getBroadcast(applicationContext, 0, i, pendingIntentFlags);
+
+            am.cancel(pendingIntent);
+            am.setInexactRepeating(
+                AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis() + AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+                AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+                pendingIntent
+            );
+            } catch (Throwable ignore) {
+                Log.d("Fork Client", "Failed to set intent");
+            }
+            try {
+                Log.d("TFOSS", "Starting push service...");
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    applicationContext.startForegroundService(new Intent(applicationContext, NotificationsService.class));
+                } else {
+                    applicationContext.startService(new Intent(applicationContext, NotificationsService.class));
+                }
+            } catch (Throwable ignore) {
+                Log.d("TFOSS", "Failed to start push service");
+>>>>>>> upstream/dev
             }
         } else {
             applicationContext.stopService(new Intent(applicationContext, NotificationsService.class));
@@ -690,11 +798,7 @@ public class ApplicationLoader extends Application {
         return false;
     }
 
-    public IUpdateLayout takeUpdateLayout(Activity activity, ViewGroup sideMenu, ViewGroup sideMenuContainer) {
-        return null;
-    }
-
-    public IUpdateButton takeUpdateButton(Context context) {
+    public IUpdateLayout takeUpdateLayout(Activity activity, ViewGroup sideMenuContainer) {
         return null;
     }
 
@@ -714,8 +818,8 @@ public class ApplicationLoader extends Application {
         return false;
     }
 
-    public boolean extendDrawer(ArrayList<DrawerLayoutAdapter.Item> items) {
-        return false;
+    public void addItemOptions(ItemOptions itemOptions) {
+
     }
 
     public boolean checkRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) {

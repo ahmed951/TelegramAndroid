@@ -38,10 +38,12 @@ public class UItem extends AdapterWithDiffUtils.Item {
     public int pad;
     public boolean hideDivider;
     public int iconResId;
+    public Drawable drawable;
     public CharSequence text, subtext, textValue;
     public CharSequence animatedText;
     public String[] texts;
     public boolean accent, red, transparent, locked;
+    public boolean multiline;
     public int spanCount = MAX_SPAN_COUNT;
     public int parentSpanCount;
 
@@ -56,6 +58,8 @@ public class UItem extends AdapterWithDiffUtils.Item {
     public Utilities.Callback<Integer> intCallback;
 
     public View.OnClickListener clickCallback;
+    public View.OnClickListener clickCallback2;
+    public Utilities.Callback<View> bind;
 
     public Object object;
     public Object object2;
@@ -79,11 +83,45 @@ public class UItem extends AdapterWithDiffUtils.Item {
         UItem i = new UItem(UniversalAdapter.VIEW_TYPE_CUSTOM, false);
         i.id = id;
         i.view = view;
+        i.intValue = LayoutHelper.MATCH_PARENT;
         return i;
     }
     public static UItem asCustom(View view) {
         UItem i = new UItem(UniversalAdapter.VIEW_TYPE_CUSTOM, false);
         i.view = view;
+        i.intValue = LayoutHelper.MATCH_PARENT;
+        return i;
+    }
+    public static UItem asCustomShadow(int id, View view) {
+        UItem i = new UItem(UniversalAdapter.VIEW_TYPE_CUSTOM_SHADOW, false);
+        i.id = id;
+        i.view = view;
+        i.intValue = LayoutHelper.MATCH_PARENT;
+        return i;
+    }
+    public static UItem asCustomShadow(View view) {
+        UItem i = new UItem(UniversalAdapter.VIEW_TYPE_CUSTOM_SHADOW, false);
+        i.view = view;
+        i.intValue = LayoutHelper.MATCH_PARENT;
+        return i;
+    }
+    public static UItem asCustomShadow(View view, boolean noclip) {
+        UItem i = new UItem(UniversalAdapter.VIEW_TYPE_CUSTOM_SHADOW, false);
+        i.view = view;
+        i.intValue = LayoutHelper.MATCH_PARENT;
+        i.checked = noclip;
+        return i;
+    }
+    public static UItem asCustom(View view, int heightDp) {
+        UItem i = new UItem(UniversalAdapter.VIEW_TYPE_CUSTOM, false);
+        i.view = view;
+        i.intValue = heightDp;
+        return i;
+    }
+    public static UItem asCustomShadow(View view, int heightDp) {
+        UItem i = new UItem(UniversalAdapter.VIEW_TYPE_CUSTOM_SHADOW, false);
+        i.view = view;
+        i.intValue = heightDp;
         return i;
     }
 
@@ -94,14 +132,26 @@ public class UItem extends AdapterWithDiffUtils.Item {
     }
 
     public static UItem asFullscreenCustom(View view, int minusHeight) {
+        return asFullscreenCustom(view, minusHeight, false);
+    }
+
+    public static UItem asFullscreenCustom(View view, int minusHeight, boolean minusPadding) {
         UItem i = new UItem(UniversalAdapter.VIEW_TYPE_FULLSCREEN_CUSTOM, false);
         i.view = view;
         i.intValue = minusHeight;
+        i.flags = minusPadding ? 1 : 0;
         return i;
     }
 
     public static UItem asHeader(CharSequence text) {
         UItem i = new UItem(UniversalAdapter.VIEW_TYPE_HEADER, false);
+        i.text = text;
+        return i;
+    }
+
+    public static UItem asHeader(int id, CharSequence text) {
+        UItem i = new UItem(UniversalAdapter.VIEW_TYPE_HEADER, false);
+        i.id = id;
         i.text = text;
         return i;
     }
@@ -125,11 +175,38 @@ public class UItem extends AdapterWithDiffUtils.Item {
         return i;
     }
 
+    public static UItem asTopView(CharSequence title, CharSequence subtitle, String setName, String emoji) {
+        UItem i = new UItem(UniversalAdapter.VIEW_TYPE_TOPVIEW, false);
+        i.text = title;
+        i.animatedText = subtitle;
+        i.subtext = setName;
+        i.textValue = emoji;
+        return i;
+    }
+
+    public static UItem asTopView(CharSequence title, CharSequence subtitle, int emojiSize, String setName, String emoji) {
+        UItem i = new UItem(UniversalAdapter.VIEW_TYPE_TOPVIEW, false);
+        i.text = title;
+        i.animatedText = subtitle;
+        i.subtext = setName;
+        i.textValue = emoji;
+        i.intValue = emojiSize;
+        return i;
+    }
+
     public static UItem asTopView(CharSequence text, String setName, String emoji) {
         UItem i = new UItem(UniversalAdapter.VIEW_TYPE_TOPVIEW, false);
         i.text = text;
         i.subtext = setName;
         i.textValue = emoji;
+        return i;
+    }
+
+    public static UItem asTopView(CharSequence title, CharSequence text, int lottieResId) {
+        UItem i = new UItem(UniversalAdapter.VIEW_TYPE_TOPVIEW, false);
+        i.text = title;
+        i.animatedText = text;
+        i.iconResId = lottieResId;
         return i;
     }
 
@@ -238,6 +315,14 @@ public class UItem extends AdapterWithDiffUtils.Item {
         return i;
     }
 
+    public static UItem asRadio2(int id, CharSequence text, CharSequence value) {
+        UItem i = new UItem(UniversalAdapter.VIEW_TYPE_RADIO_2, false);
+        i.id = id;
+        i.text = text;
+        i.textValue = value;
+        return i;
+    }
+
     public static UItem asButtonCheck(int id, CharSequence text, CharSequence subtext) {
         UItem i = new UItem(UniversalAdapter.VIEW_TYPE_TEXT_CHECK, false);
         i.id = id;
@@ -297,6 +382,12 @@ public class UItem extends AdapterWithDiffUtils.Item {
     public static UItem asAddChat(Long dialogId) {
         UItem item = new UItem(UniversalAdapter.VIEW_TYPE_USER_ADD, false);
         item.dialogId = dialogId;
+        return item;
+    }
+    public static UItem asAddChat(Long dialogId, String query) {
+        UItem item = new UItem(UniversalAdapter.VIEW_TYPE_USER_ADD, false);
+        item.dialogId = dialogId;
+        item.textValue = query;
         return item;
     }
 
@@ -371,6 +462,21 @@ public class UItem extends AdapterWithDiffUtils.Item {
         return item;
     }
 
+    public static UItem asSpace(int tag, int height) {
+        UItem item = new UItem(UniversalAdapter.VIEW_TYPE_SPACE, false);
+        item.id = tag;
+        item.intValue = height;
+        return item;
+    }
+
+    public static UItem asSpace(int tag, int height, int bg) {
+        UItem item = new UItem(UniversalAdapter.VIEW_TYPE_SPACE, false);
+        item.id = tag;
+        item.intValue = height;
+        item.iconResId = bg;
+        return item;
+    }
+
     public static UItem asRoundCheckbox(CharSequence text) {
         UItem item = new UItem(UniversalAdapter.VIEW_TYPE_ROUND_CHECKBOX, false);
         item.text = text;
@@ -418,6 +524,15 @@ public class UItem extends AdapterWithDiffUtils.Item {
         UItem item = new UItem(UniversalAdapter.VIEW_TYPE_SWITCH, false);
         item.id = id;
         item.text = text;
+        item.intValue = 1;
+        return item;
+    }
+
+    public static UItem asSwitchNoIcon(int id, CharSequence text) {
+        UItem item = new UItem(UniversalAdapter.VIEW_TYPE_SWITCH, false);
+        item.id = id;
+        item.text = text;
+        item.intValue = 0;
         return item;
     }
 
@@ -450,7 +565,7 @@ public class UItem extends AdapterWithDiffUtils.Item {
     }
 
     public UItem withOpenButton(Utilities.Callback<TLRPC.User> onOpenButton) {
-        this.checked = true;
+        this.locked = true;
         this.object2 = onOpenButton;
         return this;
     }
@@ -481,6 +596,31 @@ public class UItem extends AdapterWithDiffUtils.Item {
         return item;
     }
 
+    public static UItem asSettingsCell(int id, int icon, CharSequence text) {
+        UItem item = new UItem(UniversalAdapter.VIEW_TYPE_TEXT_SETTINGS, false);
+        item.id = id;
+        item.iconResId = icon;
+        item.text = text;
+        return item;
+    }
+
+    public static UItem asSettingsCell(int id, CharSequence text, CharSequence value) {
+        UItem item = new UItem(UniversalAdapter.VIEW_TYPE_TEXT_SETTINGS, false);
+        item.id = id;
+        item.text = text;
+        item.subtext = value;
+        return item;
+    }
+
+    public static UItem asSettingsCell(int id, int icon, CharSequence text, CharSequence value) {
+        UItem item = new UItem(UniversalAdapter.VIEW_TYPE_TEXT_SETTINGS, false);
+        item.id = id;
+        item.iconResId = icon;
+        item.text = text;
+        item.subtext = value;
+        return item;
+    }
+
 
     public UItem withUsername(boolean value) {
         withUsername = value;
@@ -497,11 +637,26 @@ public class UItem extends AdapterWithDiffUtils.Item {
         return this;
     }
 
+    public UItem setClickCallback2(View.OnClickListener clickCallback) {
+        this.clickCallback2 = clickCallback;
+        return this;
+    }
+
+    public UItem setId(int id) {
+        this.id = id;
+        return this;
+    }
+
     public UItem setChecked(boolean checked) {
         this.checked = checked;
         if (viewType == UniversalAdapter.VIEW_TYPE_FILTER_CHAT) {
             viewType = UniversalAdapter.VIEW_TYPE_FILTER_CHAT_CHECK;
         }
+        return this;
+    }
+
+    public UItem setMultiline(boolean multiline) {
+        this.multiline = multiline;
         return this;
     }
 
@@ -555,6 +710,11 @@ public class UItem extends AdapterWithDiffUtils.Item {
         return this;
     }
 
+    public UItem onBind(Utilities.Callback<View> bind) {
+        this.bind = bind;
+        return this;
+    }
+
     public <F extends UItemFactory<?>> boolean instanceOf(Class<F> factoryClass) {
         if (viewType < factoryViewTypeStartsWith) return false;
         if (factoryInstances == null) return false;
@@ -572,6 +732,9 @@ public class UItem extends AdapterWithDiffUtils.Item {
             return false;
         if (viewType == UniversalAdapter.VIEW_TYPE_USER_GROUP_CHECKBOX ||
                 viewType == UniversalAdapter.VIEW_TYPE_ROUND_CHECKBOX) {
+            return id == item.id;
+        }
+        if (viewType == UniversalAdapter.VIEW_TYPE_SPACE) {
             return id == item.id;
         }
         if (viewType == UniversalAdapter.VIEW_TYPE_GRAY_SECTION) {
@@ -595,6 +758,9 @@ public class UItem extends AdapterWithDiffUtils.Item {
             return false;
         if (viewType == UniversalAdapter.VIEW_TYPE_GRAY_SECTION) {
             return TextUtils.equals(text, item.text) && TextUtils.equals(subtext, item.subtext);
+        }
+        if (viewType == UniversalAdapter.VIEW_TYPE_SPACE) {
+            return intValue == item.intValue;
         }
         if (viewType == UniversalAdapter.VIEW_TYPE_ROUND_CHECKBOX ||
             viewType == UniversalAdapter.VIEW_TYPE_USER_CHECKBOX) {
@@ -620,6 +786,7 @@ public class UItem extends AdapterWithDiffUtils.Item {
             red == item.red &&
             locked == item.locked &&
             accent == item.accent &&
+            view == item.view &&
             TextUtils.equals(text, item.text) &&
             TextUtils.equals(subtext, item.subtext) &&
             TextUtils.equals(textValue, item.textValue) &&
@@ -627,12 +794,37 @@ public class UItem extends AdapterWithDiffUtils.Item {
             intValue == item.intValue &&
             Math.abs(floatValue - item.floatValue) < 0.01f &&
             longValue == item.longValue &&
+            drawable == item.drawable &&
             Objects.equals(object, item.object) &&
             Objects.equals(object2, item.object2)
         );
     }
 
     public boolean itemContentEquals(UItem item) {
+        if (viewType == item.viewType) {
+            if (id != item.id) return false;
+            if (enabled != item.enabled) return false;
+            switch (viewType) {
+                case UniversalAdapter.VIEW_TYPE_SHADOW:
+                    if (text == null && item.text == null)
+                        return true;
+                case UniversalAdapter.VIEW_TYPE_HEADER:
+                case UniversalAdapter.VIEW_TYPE_BLACK_HEADER:
+                case UniversalAdapter.VIEW_TYPE_LARGE_HEADER:
+                    return TextUtils.equals(text, item.text);
+                case UniversalAdapter.VIEW_TYPE_FLICKER:
+                    return intValue == item.intValue;
+                case UniversalAdapter.VIEW_TYPE_TEXT:
+                    return (
+                        object == item.object &&
+                        TextUtils.equals(text, item.text) &&
+                        TextUtils.equals(textValue, item.textValue) &&
+                        iconResId == item.iconResId &&
+                        accent == item.accent &&
+                        red == item.red
+                    );
+            }
+        }
         return super.contentsEquals(item);
     }
 
@@ -665,7 +857,7 @@ public class UItem extends AdapterWithDiffUtils.Item {
             if (context == null) return;
             if (cache == null) cache = new ArrayList<>();
             for (int i = 0; i < cache.size() - count; ++i) {
-                cache.add(createView(context, currentAccount, classGuid, resourcesProvider));
+                cache.add(createView(context, null, currentAccount, classGuid, resourcesProvider));
             }
         }
 
@@ -676,7 +868,7 @@ public class UItem extends AdapterWithDiffUtils.Item {
             return null;
         }
 
-        public V createView(Context context, int currentAccount, int classGuid, Theme.ResourcesProvider resourcesProvider) {
+        public V createView(Context context, RecyclerListView listView, int currentAccount, int classGuid, Theme.ResourcesProvider resourcesProvider) {
             return null;
         }
 
@@ -684,7 +876,7 @@ public class UItem extends AdapterWithDiffUtils.Item {
 
         }
 
-        public void attachedView(View view, UItem item) {
+        public void attachedView(RecyclerListView listView, View view, UItem item) {
 
         }
 

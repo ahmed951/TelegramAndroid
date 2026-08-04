@@ -92,11 +92,20 @@ function build_one {
 	--enable-decoder=mjpeg \
 	--enable-decoder=gif \
 	--enable-decoder=alac \
+<<<<<<< HEAD
+=======
+	--enable-decoder=h265 \
+	--enable-decoder=aac \
+>>>>>>> upstream/dev
 	--enable-demuxer=mov \
 	--enable-demuxer=gif \
 	--enable-demuxer=ogg \
 	--enable-demuxer=matroska \
 	--enable-demuxer=mp3 \
+<<<<<<< HEAD
+=======
+	--enable-demuxer=aac \
+>>>>>>> upstream/dev
 	--enable-hwaccels \
 	$ADDITIONAL_CONFIGURE_FLAG
 

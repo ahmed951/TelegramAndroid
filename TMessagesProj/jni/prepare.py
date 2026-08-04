@@ -478,15 +478,26 @@ stage('tde2e', """
     comment_line "jar"
     comment_line "mv tdlib"
 
+<<<<<<< HEAD
     gsed -i "s/ php//g" "$source_dir/example/android/check-environment.sh"
     gsed -i "s/PHP_EXECUTABLE/FALSE/g" "$source_dir/td/generate/CMakeLists.txt"
+=======
+    sed -i "s/ php//g" "$source_dir/example/android/check-environment.sh"
+    sed -i "s/PHP_EXECUTABLE/FALSE/g" "$source_dir/td/generate/CMakeLists.txt"
+>>>>>>> upstream/dev
 
     cd "$source_dir/example/android"
     if [ -n "$SED_CMDS" ]; then
         sed "$SED_CMDS" ./build-tdlib.sh
+<<<<<<< HEAD
         sed "$SED_CMDS" ./build-tdlib.sh | bash -s -- "{ndk}/../.."
     else
         ./build-tdlib.sh "{ndk}/../.."
+=======
+        sed "$SED_CMDS" ./build-tdlib.sh | bash -s -- "${{ANDROID_SDK_ROOT:-${{ANDROID_HOME:-{ndk}/../..}}}}"
+    else
+        ./build-tdlib.sh "${{ANDROID_SDK_ROOT:-${{ANDROID_HOME:-{ndk}/../..}}}}"
+>>>>>>> upstream/dev
     fi
 
     for arch in {archesStr}; do

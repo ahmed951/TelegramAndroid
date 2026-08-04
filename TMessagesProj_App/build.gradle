@@ -22,8 +22,31 @@ configurations.all {
 
 dependencies {
     implementation project(':TMessagesProj')
-    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'androidx.fragment:fragment:1.8.9'
+    implementation 'androidx.core:core:1.16.0'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+<<<<<<< HEAD
+=======
+}
+
+def readBuildProp = { String key, Object fallback ->
+    if (project.hasProperty(key)) {
+        def pv = project.property(key)
+        if (pv != null && pv.toString().trim()) {
+            return pv
+        }
+    }
+    def f = rootProject.file('local.properties')
+    if (f.exists()) {
+        def p = new Properties()
+        p.load(new FileInputStream(f))
+        def lv = p[key]
+        if (lv != null && lv.toString().trim()) {
+            return lv
+        }
+    }
+    return fallback
+>>>>>>> upstream/dev
 }
 
 android {
@@ -53,6 +76,7 @@ android {
     if (fdroid) {
         defaultConfig.applicationId = "org.forkgram.messenger"
     }
+<<<<<<< HEAD
     println "isFdroid: ${fdroid}"
     signingConfigs {
         if (fdroid) {
@@ -63,6 +87,18 @@ android {
                 keyPassword ""
             }
 
+=======
+
+    signingConfigs {
+        if (fdroid) {
+            debug {
+                storeFile file("")
+                storePassword ""
+                keyAlias ""
+                keyPassword ""
+            }
+
+>>>>>>> upstream/dev
             release {
                 storeFile file("")
                 storePassword ""
@@ -70,6 +106,7 @@ android {
                 keyPassword ""
             }
         } else {
+<<<<<<< HEAD
             debug {
                 storeFile file("/Users/ahmed/teleKeystore.jks")
                 storePassword RELEASE_STORE_PASSWORD
@@ -82,13 +119,34 @@ android {
                 storePassword RELEASE_STORE_PASSWORD
                 keyAlias RELEASE_KEY_ALIAS
                 keyPassword RELEASE_KEY_PASSWORD
+=======
+            def releaseKeystore = readBuildProp('RELEASE_KEYSTORE_FILE', null)
+            def useRealKeystore = releaseKeystore != null
+            def keystorePath = useRealKeystore ? releaseKeystore.toString() : "${rootProject.projectDir}/TMessagesProj/config/test.keystore"
+            def storePw = useRealKeystore ? readBuildProp('RELEASE_STORE_PASSWORD', '') : 'ILRvukMS1XoArnMbCmdMeu3RDigo'
+            def keyPw = useRealKeystore ? readBuildProp('RELEASE_KEY_PASSWORD', '') : 'ILRvukMS1XoArnMbCmdMeu3RDigo'
+            def keyAliasName = useRealKeystore ? readBuildProp('RELEASE_KEY_ALIAS', '') : 'telegramtest'
+
+            debug {
+                storeFile file(keystorePath)
+                storePassword storePw
+                keyAlias keyAliasName
+                keyPassword keyPw
+            }
+
+            release {
+                storeFile file(keystorePath)
+                storePassword storePw
+                keyAlias keyAliasName
+                keyPassword keyPw
+>>>>>>> upstream/dev
             }
         }
     }
 
     buildTypes {
         debug {
-            debuggable true
+            debuggable false
             jniDebuggable true
             signingConfig signingConfigs.debug
             applicationIdSuffix appSuffix
@@ -157,6 +215,7 @@ android {
             ext {
                 abiVersionCode = 1
             }
+            buildConfigField "boolean", "BUNDLE", "true"
         }
         bundleAfat_SDK23 {
             ndk {
@@ -175,6 +234,7 @@ android {
             ext {
                 abiVersionCode = 2
             }
+            buildConfigField "boolean", "BUNDLE", "true"
         }
         afat {
             ndk {
@@ -192,6 +252,7 @@ android {
             ext {
                 abiVersionCode = 9
             }
+            buildConfigField "boolean", "BUNDLE", "false"
         }
 //
         afatFd_v7a {
@@ -228,6 +289,21 @@ android {
                 abiVersionCode = 8
             }
         }
+<<<<<<< HEAD
+=======
+        forkTest {
+            ndk {
+                abiFilters "arm64-v8a"
+            }
+            applicationId "org.forkclient.messenger.test"
+            sourceSets.debug {
+                manifest.srcFile '../TMessagesProj/config/debug/AndroidManifest_SDK23.xml'
+            }
+            ext {
+                abiVersionCode = 11
+            }
+        }
+>>>>>>> upstream/dev
 //
     }
 
@@ -251,7 +327,7 @@ android {
 
     variantFilter { variant ->
         def names = variant.flavors*.name
-        if (variant.buildType.name != "release" && !names.contains("afat")) {
+        if (variant.buildType.name != "release" && !names.contains("afat") && !names.contains("forkTest")) {
             setIgnore(true)
         }
     }
@@ -260,7 +336,11 @@ android {
         minSdkVersion 21
         targetSdkVersion 35
         versionName Utils['getVersionName']()
+<<<<<<< HEAD
         ndkVersion "21.4.7075529"
+=======
+        ndkVersion "27.2.12479018"
+>>>>>>> upstream/dev
 
         multiDexEnabled true
 

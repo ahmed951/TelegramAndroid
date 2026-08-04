@@ -35943,11 +35943,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (str.startsWith("@")) {
                 Toast.makeText(getParentActivity(), "Username links are disabled", Toast.LENGTH_SHORT).show();
                 return;
-                /* if (cell != null) {
+                if (cell != null) {
                     cell.resetPressedLink(-1);
                 }
                 didLongPressUsername(cell, url, str.substring(1));
-                return; */
+                return;
             }
             if (url == null) {
                 BottomSheet.Builder builder = new BottomSheet.Builder(getParentActivity(), false, themeDelegate);
@@ -43414,7 +43414,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         final boolean isMail = str.startsWith("mailto:");
 
         if (!isMail) {
-            /*options.add(R.drawable.msg_openin, getString(customTabs && !isHashtag ? R.string.OpenInTelegramBrowser : R.string.Open), () -> {
+            options.add(R.drawable.msg_openin, getString(customTabs && !isHashtag ? R.string.OpenInTelegramBrowser : R.string.Open), () -> {
                 if (str.startsWith("video?")) {
                     didPressMessageUrl(span, false, messageObject, cell);
                 } else if (customTabs && !isHashtag) {
@@ -43423,7 +43423,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     logSponsoredClicked(messageObject, false, false);
                     openClickableLink(span, str, false, cell, messageObject, false);
                 }
-            });*/
+            });
         }
 
         if (customTabs && !isHashtag || isMail) {

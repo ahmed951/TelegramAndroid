@@ -511,7 +511,7 @@ public class ShareDialogCell extends FrameLayout implements NotificationCenter.N
             canvas.translate(getBounds().left, getBounds().top);
             AndroidUtilities.rectTmp.set(0, 0, getBounds().width(), getBounds().height());
             paint.setAlpha(alpha);
-            float r2 = Math.min(getBounds().width(), getBounds().height()) / 2f * ((float) alpha / 0xFF);
+            float r2 = AndroidUtilities.avatarCornerRadius(Math.min(getBounds().width(), getBounds().height())) * ((float) alpha / 0xFF);
             canvas.drawRoundRect(AndroidUtilities.rectTmp, r2, r2, paint);
             canvas.restore();
 

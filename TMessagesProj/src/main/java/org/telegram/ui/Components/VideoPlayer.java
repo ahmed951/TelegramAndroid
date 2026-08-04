@@ -16,6 +16,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
+import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
@@ -26,7 +27,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Base64;
-import android.util.Log;
 import android.util.LongSparseArray;
 import android.view.Surface;
 import android.view.SurfaceView;
@@ -70,8 +70,11 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectionOverride;
 import com.google.android.exoplayer2.trackselection.TrackSelectionParameters;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.DefaultAllocator;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
+import com.google.android.exoplayer2.upstream.TransferListener;
 import com.google.android.exoplayer2.video.SurfaceNotValidException;
 import com.google.android.exoplayer2.video.VideoListener;
 import com.google.android.exoplayer2.video.VideoSize;
@@ -96,6 +99,7 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.Stories.recorder.StoryEntry;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
@@ -104,6 +108,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 @SuppressLint("NewApi")
 public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsListener, NotificationCenter.NotificationCenterDelegate {
@@ -156,6 +162,7 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
     public boolean allowMultipleInstances;
 
     private boolean triedReinit;
+    private boolean triedAv1CodecFallback;
 
     private Uri currentUri;
 
@@ -330,7 +337,7 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
                 type = audioType;
                 uri = audioUri;
             }
-            mediaSource = mediaSourceFromUri(uri, type);
+            mediaSource = mediaSourceFromUri(uri, 0, type);
             mediaSource = new LoopingMediaSource(mediaSource);
             if (a == 0) {
                 mediaSource1 = mediaSource;
@@ -345,8 +352,17 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
         activePlayers.add(playerId);
     }
 
-    private MediaSource mediaSourceFromUri(Uri uri, String type) {
-        MediaItem mediaItem = new MediaItem.Builder().setUri(uri).build();
+    private MediaSource mediaSourceFromUri(VideoUri videoUri, String type) {
+        return mediaSourceFromUri(videoUri.uri, videoUri.fileVideoOffset, type);
+    }
+
+    private MediaSource mediaSourceFromUri(Uri uri, long videoByteOffset, String type) {
+        final MediaItem mediaItem = new MediaItem.Builder().setUri(uri).build();
+        if (videoByteOffset != 0) {
+            return new ProgressiveMediaSource.Factory(
+                () -> new OffsetDataSource(mediaDataSourceFactory.createDataSource(), videoByteOffset)
+            ).createMediaSource(mediaItem);
+        }
         switch (type) {
             case "dash":
                 if (dashMediaSourceFactory == null) {
@@ -372,10 +388,10 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
     }
 
     public void preparePlayer(Uri uri, String type) {
-        preparePlayer(uri, type, FileLoader.PRIORITY_HIGH);
+        preparePlayer(uri, type, FileLoader.PRIORITY_HIGH, 0);
     }
 
-    public void preparePlayer(Uri uri, String type, int priority) {
+    public void preparePlayer(Uri uri, String type, int priority, long videoByteOffset) {
         this.videoQualities = null;
         this.videoQualityToSelect = null;
         this.videoUri = uri;
@@ -392,7 +408,7 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
         String scheme = uri != null ? uri.getScheme() : null;
         isStreaming = scheme != null && !scheme.startsWith("file");
         ensurePlayerCreated();
-        MediaSource mediaSource = mediaSourceFromUri(uri, type);
+        MediaSource mediaSource = mediaSourceFromUri(uri, videoByteOffset, type);
         player.setMediaSource(mediaSource, true);
         player.prepare();
     }
@@ -727,14 +743,14 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
                 autoIsOriginal = true;
                 quality = original;
                 videoQualityToSelect = quality;
-                player.setMediaSource(mediaSourceFromUri(quality.getDownloadUri().uri, "other"), false);
+                player.setMediaSource(mediaSourceFromUri(quality.getDownloadUri(), "other"), false);
                 reset = true;
             } else if (hlsManifest != null) {
                 autoIsOriginal = false;
                 trackSelector.setParameters(trackSelector.getParameters().buildUpon().clearOverrides().build());
                 if (!currentStreamIsHls) {
                     currentStreamIsHls = true;
-                    player.setMediaSource(mediaSourceFromUri(hlsManifest, "hls"), false);
+                    player.setMediaSource(mediaSourceFromUri(hlsManifest, 0, "hls"), false);
                     reset = true;
                 }
             } else {
@@ -744,7 +760,7 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
                 currentStreamIsHls = false;
                 videoQualityToSelect = quality;
                 autoIsOriginal = quality.original;
-                player.setMediaSource(mediaSourceFromUri(quality.getDownloadUri().uri, "other"), false);
+                player.setMediaSource(mediaSourceFromUri(quality.getDownloadUri(), "other"), false);
                 reset = true;
             }
         } else {
@@ -756,12 +772,12 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
             }
             if (hlsManifest == null || quality.uris.size() == 1 || trackSelector.getCurrentMappedTrackInfo() == null) {
                 currentStreamIsHls = false;
-                player.setMediaSource(mediaSourceFromUri(quality.getDownloadUri().uri, "other"), false);
+                player.setMediaSource(mediaSourceFromUri(quality.getDownloadUri(), "other"), false);
                 reset = true;
             } else {
                 if (!currentStreamIsHls) {
                     currentStreamIsHls = true;
-                    player.setMediaSource(mediaSourceFromUri(hlsManifest, "hls"), false);
+                    player.setMediaSource(mediaSourceFromUri(hlsManifest, 0, "hls"), false);
                     reset = true;
                 }
                 TrackSelectionParameters.Builder selector = trackSelector.getParameters().buildUpon().clearOverrides();
@@ -857,11 +873,11 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
             final VideoUri q = result.get(i);
             if (q.codec != null) {
                 if (forThumb) {
-                    if (!("avc".equals(q.codec) || "h264".equals(q.codec) || "vp9".equals(q.codec) || "vp8".equals(q.codec) || ("av1".equals(q.codec) || "av01".equals(q.codec)) && supportsHardwareDecoder(q.codec))) {
+                    if (!("avc".equals(q.codec) || "h264".equals(q.codec) || "vp9".equals(q.codec) || "vp8".equals(q.codec) || ("av1".equals(q.codec) || "av01".equals(q.codec)) && supportsDecoder(q.codec, q.width, q.height))) {
                         continue;
                     }
                 } else {
-                    if (("av1".equals(q.codec) || "av01".equals(q.codec) || "hevc".equals(q.codec) || "h265".equals(q.codec) || "vp9".equals(q.codec)) && !supportsHardwareDecoder(q.codec)) {
+                    if (("av1".equals(q.codec) || "av01".equals(q.codec) || "hevc".equals(q.codec) || "h265".equals(q.codec) || "vp9".equals(q.codec)) && !supportsDecoder(q.codec, q.width, q.height)) {
                         continue;
                     }
                 }
@@ -981,6 +997,46 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
     }
 
     private static HashMap<String, Boolean> cachedSupportedCodec;
+    private static HashMap<String, Boolean> cachedSupportedAnyCodec;
+
+    private static final int CODEC_FAILURE_THRESHOLD = 3;
+    private static final long CODEC_FAILURE_EXPIRATION = 30L * 24 * 60 * 60 * 1000;
+    private static final long SOFTWARE_DECODE_MAX_PIXELS = 1920L * 1080L;
+
+    private static boolean isCodecUnsupported(String mime) {
+        final SharedPreferences prefs = MessagesController.getGlobalMainSettings();
+        if (prefs.getInt("unsupport_fails_" + mime, 0) < CODEC_FAILURE_THRESHOLD) {
+            return false;
+        }
+        final long time = prefs.getLong("unsupport_time_" + mime, 0);
+        final long now = System.currentTimeMillis();
+        final boolean sameBuild = TextUtils.equals(prefs.getString("unsupport_build_" + mime, null), BuildVars.BUILD_VERSION_STRING);
+        if (!sameBuild || time <= 0 || time > now || now - time >= CODEC_FAILURE_EXPIRATION) {
+            prefs.edit()
+                    .remove("unsupport_fails_" + mime)
+                    .remove("unsupport_time_" + mime)
+                    .remove("unsupport_build_" + mime)
+                    .apply();
+            return false;
+        }
+        return true;
+    }
+
+    public static void reportCodecFailure(String mime) {
+        final SharedPreferences prefs = MessagesController.getGlobalMainSettings();
+        prefs.edit()
+                .putInt("unsupport_fails_" + mime, prefs.getInt("unsupport_fails_" + mime, 0) + 1)
+                .putLong("unsupport_time_" + mime, System.currentTimeMillis())
+                .putString("unsupport_build_" + mime, BuildVars.BUILD_VERSION_STRING)
+                .apply();
+        if (cachedSupportedCodec != null) {
+            cachedSupportedCodec.clear();
+        }
+        if (cachedSupportedAnyCodec != null) {
+            cachedSupportedAnyCodec.clear();
+        }
+    }
+
     public static boolean supportsHardwareDecoder(String codec) {
         try {
             final String mime = toMime(codec);
@@ -988,7 +1044,7 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
             if (cachedSupportedCodec == null) cachedSupportedCodec = new HashMap<>();
             Boolean cached = cachedSupportedCodec.get(mime);
             if (cached != null) return cached;
-            if (MessagesController.getGlobalMainSettings().getBoolean("unsupport_" + mime, false)) {
+            if (isCodecUnsupported(mime)) {
                 return false;
             }
             final int count = MediaCodecList.getCodecCount();
@@ -1010,6 +1066,53 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
             FileLog.e(e);
             return false;
         }
+    }
+
+    public static boolean supportsAnyDecoder(String codec) {
+        try {
+            final String mime = toMime(codec);
+            if (mime == null) return false;
+            if (cachedSupportedAnyCodec == null) cachedSupportedAnyCodec = new HashMap<>();
+            Boolean cached = cachedSupportedAnyCodec.get(mime);
+            if (cached != null) return cached;
+            if (isCodecUnsupported(mime)) {
+                return false;
+            }
+            final int count = MediaCodecList.getCodecCount();
+            for (int i = 0; i < count; i++) {
+                final MediaCodecInfo info = MediaCodecList.getCodecInfoAt(i);
+                if (info.isEncoder()) continue;
+                final String[] supportedTypes = info.getSupportedTypes();
+                for (int j = 0; j < supportedTypes.length; ++j) {
+                    if (supportedTypes[j].equalsIgnoreCase(mime)) {
+                        cachedSupportedAnyCodec.put(mime, true);
+                        return true;
+                    }
+                }
+            }
+            cachedSupportedAnyCodec.put(mime, false);
+            return false;
+        } catch (Exception e) {
+            FileLog.e(e);
+            return false;
+        }
+    }
+
+    private static boolean isTransientCodecFailure(Throwable cause) {
+        while (cause != null) {
+            if (cause instanceof MediaCodec.CodecException && ((MediaCodec.CodecException) cause).isTransient()) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
+    }
+
+    public static boolean supportsDecoder(String codec, int width, int height) {
+        if (supportsHardwareDecoder(codec)) return true;
+        if (!"av1".equals(codec) && !"av01".equals(codec)) return false;
+        if (width > 0 && height > 0 && (long) width * height > SOFTWARE_DECODE_MAX_PIXELS) return false;
+        return supportsAnyDecoder(codec);
     }
 
     public Uri makeManifest(ArrayList<Quality> qualities) {
@@ -1092,15 +1195,15 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
                 }
             }
 
-            if (BuildVars.LOGS_ENABLED) {
-                for (Quality q : qualities) {
-                    FileLog.d("debug_loading_player: Quality "+q.p()+"p (" + q.width + "x" + q.height + ")" + (q.original ? " (source)" : "") + ":");
-                    for (VideoUri uri : q.uris) {
-                        FileLog.d("debug_loading_player: - video " + uri.width + "x" + uri.height + ", codec=" + uri.codec + ", bitrate=" + (int) (uri.bitrate*8) + ", doc#" + uri.docId + (uri.isCached() ? " (cached)" : "") + ", manifest#" + uri.manifestDocId + (uri.isManifestCached() ? " (cached)" : ""));
-                    }
-                }
-                FileLog.d("debug_loading_player: ");
-            }
+//            if (BuildVars.LOGS_ENABLED) {
+//                for (Quality q : qualities) {
+//                    FileLog.d("debug_loading_player: Quality "+q.p()+"p (" + q.width + "x" + q.height + ")" + (q.original ? " (source)" : "") + ":");
+//                    for (VideoUri uri : q.uris) {
+//                        FileLog.d("debug_loading_player: - video " + uri.width + "x" + uri.height + ", codec=" + uri.codec + ", bitrate=" + (int) (uri.bitrate*8) + ", doc#" + uri.docId + (uri.isCached() ? " (cached)" : "") + ", manifest#" + uri.manifestDocId + (uri.isManifestCached() ? " (cached)" : ""));
+//                    }
+//                }
+//                FileLog.d("debug_loading_player: ");
+//            }
 
             return qualities;
         }
@@ -1111,7 +1214,7 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
                 Quality q = qualities.get(i);
                 for (int j = 0; j < q.uris.size(); ++j) {
                     VideoUri u = q.uris.get(j);
-                    if (!TextUtils.isEmpty(u.codec) && !supportsHardwareDecoder(u.codec)) {
+                    if (!TextUtils.isEmpty(u.codec) && !supportsDecoder(u.codec, u.width, u.height)) {
                         q.uris.remove(j);
                         j--;
                     }
@@ -1201,6 +1304,7 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
         public Uri uri;
         public long manifestDocId;
         public Uri m3u8uri;
+        public long fileVideoOffset;
 
         public TLRPC.Document document;
         public TLRPC.Document manifestDocument;
@@ -1329,6 +1433,7 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
 
     public void releasePlayer(boolean async) {
         activePlayers.remove(playerId);
+        triedAv1CodecFallback = false;
         if (player != null) {
             player.release();
             player = null;
@@ -1367,6 +1472,7 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
     public void onRenderedFirstFrame(EventTime eventTime, Object output, long renderTimeMs) {
         fallbackPosition = C.TIME_UNSET;
         fallbackDuration = C.TIME_UNSET;
+        triedAv1CodecFallback = false;
         if (delegate != null) {
             delegate.onRenderedFirstFrame(eventTime);
         }
@@ -1685,16 +1791,20 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
             if (cause instanceof MediaCodecDecoderException) {
                 if (cause.toString().contains("av1") || cause.toString().contains("av01")) {
                     FileLog.e(error);
-                    FileLog.e("av1 codec failed, we think this codec is not supported");
-                    MessagesController.getGlobalMainSettings().edit().putBoolean("unsupport_video/av01", true).commit();
-                    if (cachedSupportedCodec != null) {
-                        cachedSupportedCodec.clear();
+                    if (isTransientCodecFailure(cause)) {
+                        FileLog.e("av1 codec failed transiently, not counting it against the codec");
+                    } else {
+                        FileLog.e("av1 codec failed, counting a failure for this codec");
+                        reportCodecFailure("video/av01");
                     }
-                    videoQualities = Quality.filterByCodec(videoQualities);
-                    if (videoQualities != null) {
-                        preparePlayer(videoQualities, videoQualityToSelect);
+                    if (!triedAv1CodecFallback) {
+                        triedAv1CodecFallback = true;
+                        videoQualities = Quality.filterByCodec(videoQualities);
+                        if (videoQualities != null) {
+                            preparePlayer(videoQualities, videoQualityToSelect);
+                            return;
+                        }
                     }
-                    return;
                 }
             }
             if (textureView != null && (!triedReinit && cause instanceof MediaCodecRenderer.DecoderInitializationException || cause instanceof SurfaceNotValidException)) {
@@ -2027,6 +2137,45 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
         }
 
         return builder.build();
+    }
+
+    public static class OffsetDataSource implements DataSource {
+        private final DataSource upstream;
+        private final long byteOffset;
+
+        public OffsetDataSource(DataSource upstream, long byteOffset) {
+            this.upstream = upstream;
+            this.byteOffset = byteOffset;
+        }
+
+        @Override
+        public void addTransferListener(TransferListener transferListener) {
+            upstream.addTransferListener(transferListener);
+        }
+
+        @Override
+        public long open(DataSpec dataSpec) throws IOException {
+            DataSpec offsetDataSpec = dataSpec.buildUpon()
+                .setPosition(dataSpec.position + byteOffset)
+                .build();
+            return upstream.open(offsetDataSpec);
+        }
+
+        @Override
+        public int read(byte[] buffer, int offset, int length) throws IOException {
+            return upstream.read(buffer, offset, length);
+        }
+
+        @Override
+        public Uri getUri() { return upstream.getUri(); }
+
+        @Override
+        public void close() throws IOException { upstream.close(); }
+
+        @Override
+        public Map<String, List<String>> getResponseHeaders() {
+            return upstream.getResponseHeaders();
+        }
     }
 
 }

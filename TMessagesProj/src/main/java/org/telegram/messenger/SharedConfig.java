@@ -61,6 +61,10 @@ public class SharedConfig {
             PASSCODE_TYPE_PASSWORD = 1;
     private static int legacyDevicePerformanceClass = -1;
 
+    public static String cfAccountID = "";
+    public static String cfApiToken = "";
+    public static boolean cfEnableStt = false;
+
     public static boolean loopStickers() {
         return LiteMode.isEnabled(LiteMode.FLAG_ANIMATED_STICKERS_CHAT);
     }
@@ -144,6 +148,14 @@ public class SharedConfig {
                 .apply();
     }
 
+    public static void setUnifiedPushGateway(String value) {
+        unifiedPushGateway = value;
+        ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE)
+                .edit()
+                .putString("unifiedPushGateway", unifiedPushGateway)
+                .apply();
+    }
+
     public static void toggleSurfaceInStories() {
         useSurfaceInStories = !useSurfaceInStories;
         ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE)
@@ -216,6 +228,8 @@ public class SharedConfig {
     public static byte[] pushAuthKey;
     public static byte[] pushAuthKeyId;
     public static boolean forceForumTabs;
+    public static boolean fastWallpaperDisabled;
+    public static boolean frameMetricsEnabled;
 
     public static String directShareHash;
 
@@ -261,6 +275,8 @@ public class SharedConfig {
     public static boolean useSurfaceInStories;
     public static boolean photoViewerBlur = true;
     public static boolean payByInvoice;
+    public static boolean disableUnifiedPush;
+    public static String unifiedPushGateway;
     public static int stealthModeSendMessageConfirm = 2;
     private static int lastLocalId = -210000;
 
@@ -283,8 +299,6 @@ public class SharedConfig {
     public static boolean raiseToListen = true;
     public static boolean nextMediaTap = true;
     public static boolean recordViaSco = false;
-    public static boolean customTabs = true;
-    public static boolean inappBrowser = true;
     public static boolean adaptableColorInBrowser = true;
     public static boolean onlyLocalInstantView = false;
     public static boolean directShare = true;
@@ -298,7 +312,6 @@ public class SharedConfig {
     public static boolean pauseMusicOnRecord = false;
     public static boolean pauseMusicOnMedia = false;
     public static boolean noiseSupression;
-    public static final boolean noStatusBar = true;
     public static boolean debugWebView;
     public static boolean sortContactsByName;
     public static boolean sortFilesByName;
@@ -321,6 +334,10 @@ public class SharedConfig {
     public static int emojiInteractionsHintCount;
     public static int dayNightThemeSwitchHintCount;
     public static int callEncryptionHintDisplayedCount;
+    public static boolean shadowsInSections;
+    public static boolean debugViewMetrics;
+    public static boolean photoHighQualityDefault;
+    public static boolean photoLiveDefault;
 
     public static TLRPC.TL_help_appUpdate pendingAppUpdate;
     public static int pendingAppUpdateBuildVersion;
@@ -346,13 +363,14 @@ public class SharedConfig {
     public static boolean dontAskManageStorage;
     public static boolean multipleReactionsPromoShowed;
 
-    public static boolean translateChats = true;
-
     public static boolean isFloatingDebugActive;
     public static LiteMode liteMode;
 
     public static boolean hideTitleDialog = false;
+<<<<<<< HEAD
     public static int photoSizeFactor = 1;
+=======
+>>>>>>> upstream/dev
 
     private static final int[] LOW_SOC = {
             -1775228513, // EXYNOS 850
@@ -465,6 +483,9 @@ public class SharedConfig {
                 editor.putString("storageCacheDir", !TextUtils.isEmpty(storageCacheDir) ? storageCacheDir : "");
                 editor.putBoolean("proxyRotationEnabled", proxyRotationEnabled);
                 editor.putInt("proxyRotationTimeout", proxyRotationTimeout);
+                editor.putString("cfAccountID", cfAccountID);
+                editor.putString("cfApiToken", cfApiToken);
+                editor.putBoolean("cfEnableStt", cfEnableStt);
 
                 if (pendingAppUpdate != null) {
                     try {
@@ -532,6 +553,9 @@ public class SharedConfig {
             storageCacheDir = preferences.getString("storageCacheDir", null);
             proxyRotationEnabled = preferences.getBoolean("proxyRotationEnabled", false);
             proxyRotationTimeout = preferences.getInt("proxyRotationTimeout", ProxyRotationController.DEFAULT_TIMEOUT_INDEX);
+            cfAccountID = preferences.getString("cfAccountID", "");
+            cfApiToken = preferences.getString("cfApiToken", "");
+            cfEnableStt = preferences.getBoolean("cfEnableStt", false);
             String authKeyString = preferences.getString("pushAuthKey", null);
             if (!TextUtils.isEmpty(authKeyString)) {
                 pushAuthKey = Base64.decode(authKeyString, Base64.DEFAULT);
@@ -593,8 +617,6 @@ public class SharedConfig {
             raiseToSpeak = preferences.getBoolean("raise_to_speak", false);
             nextMediaTap = preferences.getBoolean("next_media_on_tap", true);
             recordViaSco = preferences.getBoolean("record_via_sco", false);
-            customTabs = preferences.getBoolean("custom_tabs", true);
-            inappBrowser = preferences.getBoolean("inapp_browser", true);
             adaptableColorInBrowser = preferences.getBoolean("adaptableBrowser", false);
             onlyLocalInstantView = preferences.getBoolean("onlyLocalInstantView", BuildVars.DEBUG_PRIVATE_VERSION);
             directShare = preferences.getBoolean("direct_share", true);
@@ -604,7 +626,7 @@ public class SharedConfig {
             hasCameraCache = preferences.contains("cameraCache");
             roundCamera16to9 = true;
             repeatMode = preferences.getInt("repeatMode", 0);
-            fontSize = preferences.getInt("fons_size", AndroidUtilities.isTablet() ? 18 : 16);
+            fontSize = preferences.getInt("fons_size", AndroidUtilities.isTablet() && !AndroidUtilities.isFold() ? 18 : 16);
             fontSizeIsDefault = !preferences.contains("fons_size");
             bubbleRadius = preferences.getInt("bubbleRadius", 17);
             ivFontSize = preferences.getInt("iv_font_size", fontSize);
@@ -612,6 +634,8 @@ public class SharedConfig {
             useSystemEmoji = preferences.getBoolean("useSystemEmoji", false);
             useSystemBoldFont = preferences.getBoolean("useSystemBoldFont", false);
             forceForumTabs = preferences.getBoolean("forceForumTabs", false);
+            fastWallpaperDisabled = preferences.getBoolean("fastWallpaperDisabled", false);
+            frameMetricsEnabled = preferences.getBoolean("frameMetricsEnabled", false);
             if (useSystemBoldFont) {
                 AndroidUtilities.mediumTypeface = null;
             }
@@ -673,6 +697,12 @@ public class SharedConfig {
             multipleReactionsPromoShowed = preferences.getBoolean("multipleReactionsPromoShowed", false);
             callEncryptionHintDisplayedCount = preferences.getInt("callEncryptionHintDisplayedCount", 0);
             debugVideoQualities = preferences.getBoolean("debugVideoQualities", false);
+            shadowsInSections = preferences.getBoolean("shadowsInSections", false);
+            debugViewMetrics = preferences.getBoolean("debugViewMetrics", false);
+            photoHighQualityDefault = preferences.getBoolean("photoHighQualityDefault", false);
+            photoLiveDefault = preferences.getBoolean("photoLiveDefault", false);
+            disableUnifiedPush = preferences.getBoolean("disableUnifiedPush", false);
+            unifiedPushGateway = preferences.getString("unifiedPushGateway", "https://p2p.belloworld.it/");
 
             loadDebugConfig(preferences);
 
@@ -680,7 +710,10 @@ public class SharedConfig {
             showNotificationsForAllAccounts = preferences.getBoolean("AllAccounts", true);
 
             hideTitleDialog = preferences.getBoolean("hideTitle", false);
+<<<<<<< HEAD
             photoSizeFactor = MessagesController.getGlobalMainSettings().getBoolean("largePhoto", false) ? 2 : 1;
+=======
+>>>>>>> upstream/dev
 
             configLoaded = true;
         }
@@ -698,7 +731,7 @@ public class SharedConfig {
     public static void updateTabletConfig() {
         if (fontSizeIsDefault) {
             SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
-            fontSize = preferences.getInt("fons_size", AndroidUtilities.isTablet() ? 18 : 16);
+            fontSize = preferences.getInt("fons_size", AndroidUtilities.isTablet() && !AndroidUtilities.isFold() ? 18 : 16);
             ivFontSize = preferences.getInt("iv_font_size", fontSize);
         }
     }
@@ -802,10 +835,22 @@ public class SharedConfig {
         if (update.version == null || versionBiggerOrEqual(updateVersionString, update.version)) {
             return false;
         }
+        String skippedVersion = MessagesController.getGlobalMainSettings().getString("skippedAppVersion", null);
+        if (skippedVersion != null && skippedVersion.equals(update.version)) {
+            return false;
+        }
         pendingAppUpdate = update;
         pendingAppUpdateBuildVersion = versionCode;
         saveConfig();
         return true;
+    }
+
+    public static void skipPendingAppUpdate() {
+        if (pendingAppUpdate != null && pendingAppUpdate.version != null) {
+            MessagesController.getGlobalMainSettings().edit().putString("skippedAppVersion", pendingAppUpdate.version).apply();
+        }
+        pendingAppUpdate = null;
+        saveConfig();
     }
 
     // returns a >= b
@@ -1126,6 +1171,22 @@ public class SharedConfig {
         editor.apply();
     }
 
+    public static void toggleFastWallpaperDisabled() {
+        fastWallpaperDisabled = !fastWallpaperDisabled;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("fastWallpaperDisabled", fastWallpaperDisabled);
+        editor.apply();
+    }
+
+    public static void toggleFrameMetricsEnabled() {
+        frameMetricsEnabled = !frameMetricsEnabled;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("frameMetricsEnabled", frameMetricsEnabled);
+        editor.apply();
+    }
+
     public static void toggleSuggestAnimatedEmoji() {
         suggestAnimatedEmoji = !suggestAnimatedEmoji;
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
@@ -1254,22 +1315,6 @@ public class SharedConfig {
 
     public static boolean enabledRaiseTo(boolean speak) {
         return raiseToListen && (!speak || raiseToSpeak);
-    }
-
-    public static void toggleCustomTabs(boolean newValue) {
-        customTabs = newValue;
-        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean("custom_tabs", customTabs);
-        editor.apply();
-    }
-
-    public static void toggleInappBrowser() {
-        inappBrowser = !inappBrowser;
-        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean("inapp_browser", inappBrowser);
-        editor.apply();
     }
 
     public static void toggleBrowserAdaptableColors() {
@@ -1782,6 +1827,29 @@ public class SharedConfig {
         return MessagesController.getGlobalMainSettings().getBoolean("hideSensitiveData", false);
     }
 
+<<<<<<< HEAD
+=======
+    public static boolean hideSensitivePhone() {
+        return hideSensitiveData() && hideSensitivePart("hideSensitivePhone");
+    }
+
+    public static boolean hideSensitiveUsername() {
+        return hideSensitiveData() && hideSensitivePart("hideSensitiveUsername");
+    }
+
+    public static boolean hideSensitiveBio() {
+        return hideSensitiveData() && hideSensitivePart("hideSensitiveBio");
+    }
+
+    public static boolean hideSensitiveId() {
+        return hideSensitiveData() && hideSensitivePart("hideSensitiveId");
+    }
+
+    private static boolean hideSensitivePart(String key) {
+        return MessagesController.getGlobalMainSettings().getBoolean(key, true);
+    }
+
+>>>>>>> upstream/dev
     public static boolean isUserOwner() {
         return org.telegram.messenger.UserConfig.getInstance(
                 org.telegram.messenger.UserConfig.selectedAccount).clientUserId ==

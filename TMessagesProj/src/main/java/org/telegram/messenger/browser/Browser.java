@@ -53,7 +53,6 @@ import org.telegram.ui.ActionBar.BottomSheetTabs;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.BubbleActivity;
 import org.telegram.ui.LaunchActivity;
-import org.telegram.ui.web.RestrictedDomainsList;
 
 import java.lang.ref.WeakReference;
 import java.net.IDN;
@@ -297,7 +296,7 @@ public class Browser {
         }
         // ⬇️ Add this right here
         String urlStr = uri.toString();
-        if (urlStr.toLowerCase().contains("t.me")) {
+        if (urlStr.matches("https?://t\\.me/\\+[A-Za-z0-9_-]+")) {
             FileLog.d("Blocked invite link: " + urlStr);
             return;
         }
@@ -426,7 +425,7 @@ public class Browser {
             FileLog.e(e);
         }
         try {
-            final boolean inappBrowser =  false ;/*(
+            final boolean inappBrowser = (
                 allowInAppBrowser && BubbleActivity.instance == null &&
                 SharedConfig.inappBrowser &&
                 TextUtils.isEmpty(browserPackage) &&
@@ -435,7 +434,7 @@ public class Browser {
                 (uri.getScheme() == null || "https".equals(uri.getScheme()) || "http".equals(uri.getScheme()) || "tonsite".equals(uri.getScheme()))
                 ||
                 isTonsite(uri.toString())
-            );*/
+            );
             final boolean isIntentScheme = uri.getScheme() != null && uri.getScheme().equalsIgnoreCase("intent");
             if (internalUri && LaunchActivity.instance != null) {
                 openAsInternalIntent(LaunchActivity.instance, uri.toString(), forceNotInternalForApps, forceRequest, inCaseLoading);

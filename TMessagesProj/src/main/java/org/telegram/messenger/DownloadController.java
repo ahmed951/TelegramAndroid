@@ -33,6 +33,7 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 
 public class DownloadController extends BaseController implements NotificationCenter.NotificationCenterDelegate {
@@ -79,6 +80,7 @@ public class DownloadController extends BaseController implements NotificationCe
     private boolean loadingAutoDownloadConfig;
 
     private LongSparseArray<Long> typingTimes = new LongSparseArray<>();
+    private HashSet<Long> hiddenDocumentIds = new HashSet<>();
 
     public final ArrayList<MessageObject> downloadingFiles = new ArrayList<>();
     public final ArrayList<MessageObject> recentDownloadingFiles = new ArrayList<>();
@@ -253,6 +255,10 @@ public class DownloadController extends BaseController implements NotificationCe
             }
         }
         return localInstance;
+    }
+
+    public static boolean hasInstance(int num) {
+        return Instance[num] != null;
     }
 
     public DownloadController(int instance) {
@@ -446,6 +452,10 @@ public class DownloadController extends BaseController implements NotificationCe
             return PRESET_SIZE_NUM_DOCUMENT;
         }
         return PRESET_SIZE_NUM_PHOTO;
+    }
+
+    public void setDocumentHidden(long documentId) {
+        hiddenDocumentIds.add(documentId);
     }
 
     public void cleanup() {
@@ -691,6 +701,10 @@ public class DownloadController extends BaseController implements NotificationCe
             return canPreloadStories() ? 2 : 0;
         }
         TLRPC.Message msg = message.messageOwner;
+        TLRPC.Document doc = MessageObject.getDocument(msg);
+        if (doc != null && hiddenDocumentIds.contains(doc.id)) {
+            return 0;
+        }
         int type;
         boolean isVideo;
         if ((isVideo = MessageObject.isVideoMessage(msg)) || MessageObject.isGifMessage(msg) || MessageObject.isRoundVideoMessage(msg) || MessageObject.isGameMessage(msg)) {
@@ -781,6 +795,10 @@ public class DownloadController extends BaseController implements NotificationCe
             return canPreloadStories() ? 2 : 0;
         }
         TLRPC.Message msg = message.messageOwner;
+        TLRPC.Document doc = MessageObject.getDocument(msg);
+        if (doc != null && hiddenDocumentIds.contains(doc.id)) {
+            return 0;
+        }
         int type;
         boolean isVideo;
         if ((isVideo = MessageObject.isVideoMessage(msg)) || MessageObject.isGifMessage(msg) || MessageObject.isRoundVideoMessage(msg) || MessageObject.isGameMessage(msg)) {
@@ -1149,6 +1167,9 @@ public class DownloadController extends BaseController implements NotificationCe
             TLRPC.PhotoSize photoSize = null;
             if (downloadObject.object instanceof TLRPC.Document) {
                 TLRPC.Document document = (TLRPC.Document) downloadObject.object;
+                if (hiddenDocumentIds.contains(document.id)) {
+                    continue;
+                }
                 path = FileLoader.getAttachFileName(document);
             } else if (downloadObject.object instanceof TLRPC.Photo) {
                 TLRPC.Photo photo = (TLRPC.Photo) downloadObject.object;

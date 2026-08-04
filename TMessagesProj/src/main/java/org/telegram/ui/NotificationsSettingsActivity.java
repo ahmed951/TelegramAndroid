@@ -8,6 +8,7 @@
 
 package org.telegram.ui;
 
+import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
 
 import android.app.Activity;
@@ -26,15 +27,21 @@ import android.text.TextUtils;
 import android.util.LongSparseArray;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Keep;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+<<<<<<< HEAD
 import org.telegram.messenger.UnifiedPushReceiver;
+=======
+import org.telegram.messenger.UnifiedPushService;
+>>>>>>> upstream/dev
 import org.unifiedpush.android.connector.UnifiedPush;
 
 import org.telegram.messenger.AndroidUtilities;
@@ -57,6 +64,7 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
@@ -103,6 +111,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
     private ArrayList<NotificationException> exceptionAutoStories = null;
 
     private int accountsSectionRow;
+    @Keep
     private int accountsAllRow;
     private int accountsInfoRow;
 
@@ -110,18 +119,28 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
     private int notificationsServiceConnectionRow;
 
     private int notificationsSectionRow;
+    @Keep
     private int privateRow;
+    @Keep
     private int groupRow;
+    @Keep
     private int channelsRow;
+    @Keep
     private int storiesRow;
+    @Keep
     private int reactionsRow;
     private int notificationsSection2Row;
 
     private int inappSectionRow;
+    @Keep
     private int inappSoundRow;
+    @Keep
     private int inappVibrateRow;
+    @Keep
     private int inappPreviewRow;
+    @Keep
     private int inchatSoundRow;
+    @Keep
     private int inappPriorityRow;
     private int callsSection2Row;
     private int callsSectionRow;
@@ -129,20 +148,30 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
     private int callsRingtoneRow;
     private int eventsSection2Row;
     private int eventsSectionRow;
+    @Keep
     private int contactJoinedRow;
+    @Keep
     private int pinnedMessageRow;
     private int otherSection2Row;
     private int otherSectionRow;
     private int badgeNumberSection;
+    @Keep
     private int badgeNumberShowRow;
+    @Keep
     private int badgeNumberMutedRow;
+    @Keep
     private int badgeNumberMessagesRow;
     private int badgeNumberSection2Row;
     private int androidAutoAlertRow;
     private int repeatRow;
     private int unifiedPushDistributorRow;
+<<<<<<< HEAD
+=======
+    private int unifiedPushGatewayRow;
+>>>>>>> upstream/dev
     private int resetSection2Row;
     private int resetSectionRow;
+    @Keep
     private int resetNotificationsRow;
     private int resetNotificationsSectionRow;
     private int rowCount = 0;
@@ -151,13 +180,17 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
     private boolean updateRingtone;
     private boolean updateRepeatNotifications;
     private boolean updateUnifiedPushDistributor;
+<<<<<<< HEAD
+=======
+    private boolean updateUnifiedPushGateway;
+>>>>>>> upstream/dev
 
     @Override
     public boolean onFragmentCreate() {
         MessagesController.getInstance(currentAccount).loadSignUpNotificationsSettings();
-        loadExceptions();
+        loadExceptions(null);
 
-        if (UserConfig.getActivatedAccountsCount() > 1) {
+        if (UserConfig.getVisibleAccountsCount() > 1) {
             accountsSectionRow = rowCount++;
             accountsAllRow = rowCount++;
             accountsInfoRow = rowCount++;
@@ -207,7 +240,14 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
         notificationsServiceConnectionRow = rowCount++;
         androidAutoAlertRow = -1;
         repeatRow = rowCount++;
+<<<<<<< HEAD
         unifiedPushDistributorRow = rowCount++;
+=======
+        if (!SharedConfig.disableUnifiedPush) {
+            unifiedPushDistributorRow = rowCount++;
+            unifiedPushGatewayRow = rowCount++;
+        }
+>>>>>>> upstream/dev
         resetSection2Row = rowCount++;
         resetSectionRow = rowCount++;
         resetNotificationsRow = rowCount++;
@@ -220,7 +260,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
         return super.onFragmentCreate();
     }
 
-    private void loadExceptions() {
+    public void loadExceptions(Runnable onDone) {
         MediaDataController.getInstance(currentAccount).loadHints(true);
         final ArrayList<TLRPC.TL_topPeer> topPeers = new ArrayList<>(MediaDataController.getInstance(currentAccount).hints);
         MessagesStorage.getInstance(currentAccount).getStorageQueue().postRunnable(() -> {
@@ -419,15 +459,39 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                 exceptionChannels = channelsResult;
                 exceptionStories = storiesResult;
                 exceptionAutoStories = storiesAutoResult;
-                adapter.notifyItemChanged(privateRow);
-                adapter.notifyItemChanged(groupRow);
-                adapter.notifyItemChanged(channelsRow);
-                adapter.notifyItemChanged(storiesRow);
+                if (adapter != null) {
+                    adapter.notifyItemChanged(privateRow);
+                    adapter.notifyItemChanged(groupRow);
+                    adapter.notifyItemChanged(channelsRow);
+                    adapter.notifyItemChanged(storiesRow);
+                }
+
+                if (onDone != null) {
+                    onDone.run();
+                }
             });
         });
 
         // stories exceptions
         // adapter.notifyItemChanged(storiesRow);
+    }
+
+    public NotificationsCustomSettingsActivity makeNotificationsCustomSettingsActivity(int type) {
+        ArrayList<NotificationException> exceptions;
+        ArrayList<NotificationException> autoExceptions = null;
+        if (type == NotificationsController.TYPE_PRIVATE) {
+            exceptions = exceptionUsers;
+        } else if (type == NotificationsController.TYPE_GROUP) {
+            exceptions = exceptionChats;
+        } else if (type == NotificationsController.TYPE_REACTIONS_MESSAGES) {
+            exceptions = null;
+        } else if (type == NotificationsController.TYPE_STORIES) {
+            exceptions = exceptionStories;
+            autoExceptions = exceptionAutoStories;
+        } else {
+            exceptions = exceptionChannels;
+        }
+        return new NotificationsCustomSettingsActivity(type, exceptions, autoExceptions);
     }
 
     @Override
@@ -440,7 +504,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(getString("NotificationsAndSounds", R.string.NotificationsAndSounds));
+        actionBar.setTitle(getString(R.string.NotificationsAndSounds));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -449,12 +513,17 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                 }
             }
         });
+        if (parentLayout != null && parentLayout.isRightLayout()) {
+            actionBar.setBackButtonImage(R.drawable.ic_ab_close);
+        }
 
         fragmentView = new FrameLayout(context);
         FrameLayout frameLayout = (FrameLayout) fragmentView;
         frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
 
         listView = new RecyclerListView(context);
+        listView.setSections();
+        actionBar.setAdaptiveBackground(listView);
         listView.setItemAnimator(null);
         listView.setLayoutAnimation(null);
         listView.setLayoutManager(layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false) {
@@ -502,7 +571,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                 }
 
                 NotificationsCheckCell checkCell = (NotificationsCheckCell) view;
-                if (LocaleController.isRTL && x <= AndroidUtilities.dp(76) || !LocaleController.isRTL && x >= view.getMeasuredWidth() - AndroidUtilities.dp(76)) {
+                if (LocaleController.isRTL && x <= dp(76) || !LocaleController.isRTL && x >= view.getMeasuredWidth() - dp(76)) {
                     final boolean enabledFinal = enabled;
                     showExceptionsAlert(position, () -> {
                         if (type == NotificationsController.TYPE_STORIES) {
@@ -774,7 +843,11 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                 LinearLayout linearLayout = new LinearLayout(context);
                 linearLayout.setOrientation(LinearLayout.VERTICAL);
 
+<<<<<<< HEAD
                 List<String> distributors = UnifiedPush.getDistributors(ApplicationLoader.applicationContext, new ArrayList<>());
+=======
+                List<String> distributors = UnifiedPush.getDistributors(ApplicationLoader.applicationContext);
+>>>>>>> upstream/dev
                 CharSequence[] items = distributors.toArray(new CharSequence[distributors.size()]);
 
                 String distributor = UnifiedPush.getAckDistributor(ApplicationLoader.applicationContext);
@@ -789,10 +862,17 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                     linearLayout.addView(cell);
                     cell.setOnClickListener(v -> {
                         UnifiedPush.saveDistributor(ApplicationLoader.applicationContext, items[index].toString());
+<<<<<<< HEAD
                         UnifiedPush.registerApp(ApplicationLoader.applicationContext,
                                 "default",
                                 new ArrayList<String>(),
                                 "Telegram Simple Push");
+=======
+                        UnifiedPush.register(ApplicationLoader.applicationContext,
+                                "default",
+                                "Telegram Simple Push",
+                                null);
+>>>>>>> upstream/dev
                         updateUnifiedPushDistributor = true;
                         adapter.notifyItemChanged(position);
                         dialogRef.get().dismiss();
@@ -806,6 +886,33 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                         .create();
                 dialogRef.set(dialog);
                 showDialog(dialog);
+<<<<<<< HEAD
+=======
+            } else if (position == unifiedPushGatewayRow) {
+                final EditText input = new EditText(getParentActivity());
+                input.setText(SharedConfig.unifiedPushGateway);
+                input.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+                input.setHintTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
+                Dialog dialog = new AlertDialog.Builder(getParentActivity())
+                        .setTitle(LocaleController.getString("UnifiedPushGateway", R.string.UnifiedPushGateway))
+                        .setMessage(LocaleController.getString("UnifiedPushGatewayInfo", R.string.UnifiedPushGatewayInfo))
+                        .setView(input)
+                        .setPositiveButton(LocaleController.getString("OK", R.string.OK), (di, w) -> {
+                            String value = String.valueOf(input.getText());
+                            if (!value.endsWith("/")) {
+                                value += "/";
+                            }
+                            SharedConfig.setUnifiedPushGateway(value);
+                            UnifiedPush.register(ApplicationLoader.applicationContext,
+                                    "default",
+                                    "Telegram Simple Push",
+                                    null);
+                            updateUnifiedPushGateway = true;
+                            adapter.notifyItemChanged(position);
+                        }).setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null)
+                        .create();
+                showDialog(dialog);
+>>>>>>> upstream/dev
             }
             if (view instanceof TextCheckCell) {
                 ((TextCheckCell) view).setChecked(!enabled);
@@ -817,6 +924,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
             }
             if (position == unifiedPushDistributorRow) {
                 String txt;
+<<<<<<< HEAD
                 if (UnifiedPushReceiver.getNumOfReceivedNotifications() == 0) {
                     txt = "You never received notifications with UnifiedPush since Mercurygram was started.";
                 } else {
@@ -824,6 +932,15 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                                         "You received %d notifications since Mercurygram was started.",
                                         (SystemClock.elapsedRealtime() - UnifiedPushReceiver.getLastReceivedNotification()) / 1000,
                                         UnifiedPushReceiver.getNumOfReceivedNotifications());
+=======
+                if (UnifiedPushService.getNumOfReceivedNotifications() == 0) {
+                    txt = "You never received notifications with UnifiedPush since Forkgram was started.";
+                } else {
+                    txt = String.format("The last received notification with UnifiedPush was %d seconds ago.\n" +
+                                        "You received %d notifications since Forkgram was started.",
+                                        (SystemClock.elapsedRealtime() - UnifiedPushService.getLastReceivedNotification()) / 1000,
+                                        UnifiedPushService.getNumOfReceivedNotifications());
+>>>>>>> upstream/dev
                 }
                 txt += String.format("\n\nThe current UnifiedPush endpoint is: %s", SharedConfig.pushString);
                 Dialog dialog = new AlertDialog.Builder(getParentActivity())
@@ -922,9 +1039,9 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         if (exceptions.size() == 1) {
-            builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString("NotificationsExceptionsSingleAlert", R.string.NotificationsExceptionsSingleAlert, alertText)));
+            builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.NotificationsExceptionsSingleAlert, alertText)));
         } else {
-            builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString("NotificationsExceptionsAlert", R.string.NotificationsExceptionsAlert, alertText)));
+            builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.NotificationsExceptionsAlert, alertText)));
         }
         builder.setTitle(getString("NotificationsExceptions", R.string.NotificationsExceptions));
         builder.setNeutralButton(getString("ViewExceptions", R.string.ViewExceptions), (dialogInterface, i) -> presentFragment(new NotificationsCustomSettingsActivity(-1, exceptions, autoExceptions)));
@@ -977,31 +1094,25 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
             switch (viewType) {
                 case 0:
                     view = new HeaderCell(mContext, resourceProvider);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 1:
                     view = new TextCheckCell(mContext, resourceProvider);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 2:
                     view = new TextDetailSettingsCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 3:
                     view = new NotificationsCheckCell(mContext, 21, 64, true, resourceProvider);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 4:
                     view = new ShadowSectionCell(mContext, resourceProvider);
                     break;
                 case 5:
                     view = new TextSettingsCell(mContext, resourceProvider);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 6:
                 default:
                     view = new TextInfoPrivacyCell(mContext, resourceProvider);
-                    view.setBackgroundDrawable(Theme.getThemedDrawableByKey(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     break;
             }
             return new RecyclerListView.Holder(view);
@@ -1049,7 +1160,11 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                     } else if (position == androidAutoAlertRow) {
                         checkCell.setTextAndCheck("Android Auto", preferences.getBoolean("EnableAutoNotifications", false), true);
                     } else if (position == notificationsServiceConnectionRow) {
+<<<<<<< HEAD
                         checkCell.setTextAndValueAndCheck(getString("NotificationsServiceConnection", R.string.NotificationsServiceConnection), "You won't be notified of new messages, if you disable this", preferences.getBoolean("pushConnection", getMessagesController().backgroundConnection), true, true);
+=======
+                        checkCell.setTextAndValueAndCheck(getString("NotificationsServiceConnection", R.string.NotificationsServiceConnection), "If disabled, you won't be notified of new messages unless you enabled UnifiedPush", preferences.getBoolean("pushConnection", getMessagesController().backgroundConnection), true, true);
+>>>>>>> upstream/dev
                     } else if (position == badgeNumberShowRow) {
                         checkCell.setTextAndCheck(getString("BadgeNumberShow", R.string.BadgeNumberShow), getNotificationsController().showBadgeNumber, true);
                     } else if (position == badgeNumberMutedRow) {
@@ -1070,6 +1185,14 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                     settingsCell.setMultilineDetail(true);
                     if (position == resetNotificationsRow) {
                         settingsCell.setTextAndValue(getString("ResetAllNotifications", R.string.ResetAllNotifications), getString("UndoAllCustom", R.string.UndoAllCustom), false);
+                    } else if (position == unifiedPushDistributorRow) {
+                        String value = UnifiedPush.getAckDistributor(ApplicationLoader.applicationContext);
+                        settingsCell.setTextAndValue(LocaleController.getString("UnifiedPushDistributor", R.string.UnifiedPushDistributor), value, false);
+                        updateUnifiedPushDistributor = false;
+                    } else if (position == unifiedPushGatewayRow) {
+                        String value = SharedConfig.unifiedPushGateway;
+                        settingsCell.setTextAndValue(LocaleController.getString("UnifiedPushGateway", R.string.UnifiedPushGateway), value, false);
+                        updateUnifiedPushGateway = false;
                     }
                     break;
                 }
@@ -1171,11 +1294,6 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                     break;
                 }
                 case 4: {
-                    if (position == resetNotificationsSectionRow) {
-                        holder.itemView.setBackgroundDrawable(Theme.getThemedDrawableByKey(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
-                    } else {
-                        holder.itemView.setBackgroundDrawable(Theme.getThemedDrawableByKey(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
-                    }
                     break;
                 }
                 case 5: {
@@ -1243,7 +1361,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                     position == badgeNumberShowRow || position == inappPriorityRow || position == inchatSoundRow ||
                     position == androidAutoAlertRow || position == accountsAllRow) {
                 return 1;
-            } else if (position == resetNotificationsRow) {
+            } else if (position == resetNotificationsRow || position == unifiedPushDistributorRow || position == unifiedPushGatewayRow) {
                 return 2;
             } else if (position == privateRow || position == groupRow || position == channelsRow || position == storiesRow || position == reactionsRow) {
                 return 3;
@@ -1266,7 +1384,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{HeaderCell.class, TextCheckCell.class, TextDetailSettingsCell.class, TextSettingsCell.class, NotificationsCheckCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
         themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundGray));
 
-        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_actionBarDefault));
+//        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_actionBarDefault));
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_LISTGLOWCOLOR, null, null, null, null, Theme.key_actionBarDefault));
         themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_ITEMSCOLOR, null, null, null, null, Theme.key_actionBarDefaultIcon));
         themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_TITLECOLOR, null, null, null, null, Theme.key_actionBarDefaultTitle));
@@ -1291,15 +1409,22 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextSettingsCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextSettingsCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteValueText));
 
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_BACKGROUNDFILTER, new Class[]{ShadowSectionCell.class}, null, null, null, Theme.key_windowBackgroundGrayShadow));
-
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextDetailSettingsCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextDetailSettingsCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
 
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_BACKGROUNDFILTER, new Class[]{TextInfoPrivacyCell.class}, null, null, null, Theme.key_windowBackgroundGrayShadow));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextInfoPrivacyCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText4));
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_LINKCOLOR, new Class[]{TextInfoPrivacyCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteLinkText));
 
         return themeDescriptions;
+    }
+
+    @Override
+    public boolean isSupportEdgeToEdge() {
+        return true;
+    }
+    @Override
+    public void onInsets(int left, int top, int right, int bottom) {
+        listView.setPadding(0, 0, 0, bottom);
+        listView.setClipToPadding(false);
     }
 }

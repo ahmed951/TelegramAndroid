@@ -1,16 +1,13 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-<<<<<<< HEAD
-    ext.kotlin_version = '1.9.23'
-=======
+
     ext.kotlin_version = '2.4.10'
->>>>>>> upstream/dev
     repositories {
         mavenCentral()
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.4.2'
+        classpath 'com.android.tools.build:gradle:8.5.2'
         // This is needed since android-connector:2.2.0 is built with Java 17
         classpath 'com.android.tools:r8:8.2.33'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"

@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<<<<<<< HEAD
+
     <string name="AppName">أت كلاينت</string>
     <string name="AppNameBeta">(Beta) أت كلاينت</string>
-=======
     <!--FORK CLIENT-->
     <string name="ForkSectionAppearance">المظهر</string>
     <string name="ForkSectionMedia">الصور والفيديو</string>
@@ -167,9 +166,7 @@
     <string name="HideStoriesInArchive">إخفاء القصص في الأرشيف</string>
     <string name="ExtractMediaFromPreview">إرسال الوسائط من معاينة الرابط كمرفق</string>
 
-    <string name="AppName">Fork Client</string>
-    <string name="AppNameBeta">Fork Client</string>
->>>>>>> upstream/dev
+
     <string name="LanguageName">العربية</string>
     <string name="English">الإنجليزية</string>
     <string name="LanguageNameInEnglish">Arabic</string>
@@ -1411,7 +1408,7 @@
     <string name="RemindTodayAt">\'ذكّرني اليوم عند\' HH:mm</string>
     <string name="RemindDayAt">\'ذكّرني بتاريخ\' d MMM \'عند\' HH:mm</string>
     <string name="RemindDayYearAt">\'ذكّرني بتاريخ\' d MMM yyyy \'عند\' HH:mm</string>
-<<<<<<< HEAD
+
     <!--FORK CLIENT-->
     <string name="BottomDialogs">اضغط هنا لبدء محادثة جديدة.</string>
     <string name="FastForward">إعادة توجيه سريعة</string>
@@ -1474,7 +1471,7 @@
     <string name="DisableRecentFilesAttachment">تعطيل الملفات الحديثة</string>
     <string name="SmsOnlyOfficialWarning">ملاحظة: التحقق عبر الرسائل النصية مقتصر فقط على التطبيقات الرسمية</string>
 
-=======
+
     <string name="PasskeyGoogleManagerInfo">لا يقبل مدير كلمات مرور Google مفاتيح المرور من هذا التطبيق. اختر مدير كلمات مرور آخر، مثل Bitwarden أو KeePassDX.</string>
     <string name="FolderIcon">أيقونة المجلد</string>
     <string name="FolderTabsStyle">علامات تبويب المجلدات</string>
@@ -1483,5 +1480,5 @@
     <string name="FolderTabsStyleIcon">الأيقونات</string>
     <string name="FolderTabsStyleInfo">اختر كيفية ظهور المجلدات في شريط علامات التبويب. عيّن أيقونة لكل مجلد من إعداداته.</string>
     <string name="ShareDeleteOriginals">حذف الرسائل الأصلية</string>
->>>>>>> upstream/dev
+
 </resources>

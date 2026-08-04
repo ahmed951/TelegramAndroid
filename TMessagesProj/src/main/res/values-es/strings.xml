@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<<<<<<< HEAD
+
     <string name="AppName">AT Client</string>
     <string name="AppNameBeta">AT Client</string>
-=======
+
     <!--FORK CLIENT-->
     <string name="ForkSectionAppearance">Apariencia</string>
     <string name="ForkSectionMedia">Fotos y vídeos</string>
@@ -166,9 +166,8 @@
     <string name="EnableLastSeenDots">Activar puntos de color de última conexión</string>
     <string name="HideStoriesInArchive">Ocultar historias en el archivo</string>
     <string name="ExtractMediaFromPreview">Enviar medios de la vista previa del enlace como adjunto</string>
-    <string name="AppName">Fork Client</string>
-    <string name="AppNameBeta">Fork Client</string>
->>>>>>> upstream/dev
+
+
     <string name="LanguageName">Español</string>
     <string name="English">Inglés</string>
     <string name="LanguageNameInEnglish">Spanish</string>
@@ -1483,7 +1482,7 @@
     <string name="RemindDayYearAt">\'Recordar el\' d \'de\' MMM \'de\' yyyy \'a las\' HH:mm</string>
     <string name="PasskeyGoogleManagerInfo">El Administrador de contraseñas de Google no acepta passkeys de esta app. Elige otro gestor de contraseñas, como Bitwarden o KeePassDX.</string>
     <string name="BotsMenuTitle">Menu</string>
-<<<<<<< HEAD
+
     <!--FORK CLIENT-->
     <string name="BottomDialogs">Toca aquí para iniciar un nuevo chat.</string>
     <string name="FastForward">Reenviar Rápido</string>
@@ -1546,7 +1545,7 @@
     <string name="DisableRecentFilesAttachment">Desactivar archivos recientes</string>
     <string name="SmsOnlyOfficialWarning">Nota: La verificación por SMS está limitada SOLO a aplicaciones móviles oficiales</string>
 
-=======
+
     <string name="Understood">👍 Entendido</string>
     <string name="FolderIcon">Icono de la carpeta</string>
     <string name="FolderTabsStyle">Pestañas de carpetas</string>
@@ -1555,5 +1554,5 @@
     <string name="FolderTabsStyleIcon">Iconos</string>
     <string name="FolderTabsStyleInfo">Elige cómo aparecen las carpetas en la barra de pestañas. Asigna un icono a cada carpeta en sus ajustes.</string>
     <string name="ShareDeleteOriginals">Eliminar los mensajes originales</string>
->>>>>>> upstream/dev
+
 </resources>
